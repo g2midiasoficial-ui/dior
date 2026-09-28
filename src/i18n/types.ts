@@ -1,0 +1,395 @@
+export type LanguageCode = 'pt' | 'en' | 'es' | 'fr' | 'de' | 'it' | 'ja' | 'zh';
+
+export interface LanguageOption {
+  code: LanguageCode;
+  name: string;
+  nativeName: string;
+  flag: string;
+  shortCode: string;
+}
+
+export interface TranslationSchema {
+  common: {
+    appName: string;
+    tagline: string;
+    loading: string;
+    save: string;
+    saved: string;
+    saving: string;
+    cancel: string;
+    confirm: string;
+    close: string;
+    back: string;
+    next: string;
+    previous: string;
+    delete: string;
+    edit: string;
+    copy: string;
+    copied: string;
+    export: string;
+    share: string;
+    search: string;
+    filter: string;
+    new: string;
+    create: string;
+    upgrade: string;
+    pro: string;
+    free: string;
+    team: string;
+    language: string;
+    selectLanguage: string;
+    actions: string;
+    status: string;
+    all: string;
+    month: string;
+    year: string;
+    perMonth: string;
+    popular: string;
+    bestValue: string;
+    success: string;
+    error: string;
+    required: string;
+    optional: string;
+  };
+  nav: {
+    features: string;
+    useCases: string;
+    resources: string;
+    enterprise: string;
+    pricing: string;
+    contactSales: string;
+    login: string;
+    register: string;
+    openApp: string;
+    getStartedFree: string;
+    talkToSales: string;
+  };
+  sales: {
+    heroBadge: string;
+    heroTitlePrefix: string;
+    heroTitleHighlight: string;
+    heroTitleSuffix: string;
+    heroSubtitle: string;
+    startFreeButton: string;
+    seeInteractiveDemo: string;
+    noCreditCardRequired: string;
+    unlimitedCanvases: string;
+    aiIncluded: string;
+    instantExport: string;
+    usedByInnovators: string;
+    
+    // Sandbox Tabs
+    sandboxTitle: string;
+    sandboxSubtitle: string;
+    tabBrainstorm: string;
+    tabArchitecture: string;
+    tabRoadmap: string;
+    tabAiMindmap: string;
+    addStickyNote: string;
+    typeNotePlaceholder: string;
+    pasteNoteTip: string;
+    collaboratorTyping: string;
+    
+    // Pillar Features
+    pillar1Title: string;
+    pillar1Subtitle: string;
+    pillar1Desc: string;
+    pillar2Title: string;
+    pillar2Subtitle: string;
+    pillar2Desc: string;
+    pillar3Title: string;
+    pillar3Subtitle: string;
+    pillar3Desc: string;
+    pillar4Title: string;
+    pillar4Subtitle: string;
+    pillar4Desc: string;
+
+    // Feature Highlights
+    featureFastClip: string;
+    featureFastClipDesc: string;
+    featureMindmapStudio: string;
+    featureMindmapStudioDesc: string;
+    featureSlideMotion: string;
+    featureSlideMotionDesc: string;
+    featureAiAgent: string;
+    featureAiAgentDesc: string;
+    featureRealtimeCollab: string;
+    featureRealtimeCollabDesc: string;
+    featureExportUltra: string;
+    featureExportUltraDesc: string;
+
+    // ROI Calculator
+    roiTitle: string;
+    roiSubtitle: string;
+    roiTeamSize: string;
+    roiMeetingHours: string;
+    roiHoursSaved: string;
+    roiFinancialSavings: string;
+    roiEfficiencyBoost: string;
+    roiCta: string;
+
+    // Pricing
+    pricingTitle: string;
+    pricingSubtitle: string;
+    monthly: string;
+    annual: string;
+    discountAnnual: string;
+    freePlanTitle: string;
+    freePlanPrice: string;
+    freePlanDesc: string;
+    freePlanCta: string;
+    proPlanTitle: string;
+    proPlanPrice: string;
+    proPlanDesc: string;
+    proPlanCta: string;
+    teamPlanTitle: string;
+    teamPlanPrice: string;
+    teamPlanDesc: string;
+    teamPlanCta: string;
+
+    // Testimonials & Proof
+    testimonialsTitle: string;
+    testimonialsSubtitle: string;
+
+    // FAQ
+    faqTitle: string;
+    faqSubtitle: string;
+    faqQ1: string;
+    faqA1: string;
+    faqQ2: string;
+    faqA2: string;
+    faqQ3: string;
+    faqA3: string;
+    faqQ4: string;
+    faqA4: string;
+    faqQ5: string;
+    faqA5: string;
+
+    // CTA Banner
+    bannerTitle: string;
+    bannerSubtitle: string;
+    bannerCta: string;
+    bannerSecondaryCta: string;
+
+    // Footer
+    footerDesc: string;
+    productCol: string;
+    solutionsCol: string;
+    resourcesCol: string;
+    legalCol: string;
+    rightsReserved: string;
+  };
+  dashboard: {
+    home: string;
+    recent: string;
+    favorites: string;
+    recordings: string;
+    trash: string;
+    searchBoards: string;
+    newBoard: string;
+    createBlank: string;
+    templatesTitle: string;
+    templatesSubtitle: string;
+    seeAllTemplates: string;
+    myBoards: string;
+    lastModified: string;
+    owner: string;
+    viewOptions: string;
+    noBoardsFound: string;
+    createFirstBoard: string;
+    trashEmpty: string;
+    restore: string;
+    deleteForever: string;
+    favorite: string;
+    unfavorite: string;
+    rename: string;
+    duplicate: string;
+    inviteMembers: string;
+    upgradePlan: string;
+    workspaceTeams: string;
+    notifications: string;
+    markAllRead: string;
+    noNotifications: string;
+    profile: string;
+    logout: string;
+    storageUsed: string;
+    activeUsers: string;
+  };
+  canvas: {
+    backToDashboard: string;
+    untitledBoard: string;
+    editingTitle: string;
+    tools: {
+      select: string;
+      hand: string;
+      stickyNote: string;
+      shape: string;
+      text: string;
+      draw: string;
+      connector: string;
+      frame: string;
+      image: string;
+      mindmap: string;
+      slideMotion: string;
+      aiAgent: string;
+      aiAssistant: string;
+      templates: string;
+      comment: string;
+      eraser: string;
+      laser: string;
+    };
+    topNav: {
+      export: string;
+      share: string;
+      present: string;
+      timer: string;
+      voting: string;
+      sound: string;
+      talkTrack: string;
+      commandPalette: string;
+      shortcuts: string;
+      collaborators: string;
+      cursorCollab: string;
+      aiHub: string;
+      startCall: string;
+      inCall: string;
+    };
+    videoCall: {
+      title: string;
+      joinCall: string;
+      leaveCall: string;
+      mute: string;
+      unmute: string;
+      cameraOn: string;
+      cameraOff: string;
+      shareScreen: string;
+      stopShareScreen: string;
+      minimize: string;
+      expand: string;
+      dockSide: string;
+      raiseHand: string;
+      reactions: string;
+      participants: string;
+      aiScribe: string;
+      aiSummaryTitle: string;
+      insertToCanvas: string;
+      copyCallLink: string;
+      linkCopied: string;
+      virtualBg: string;
+      activeCallBadge: string;
+      googleMeetTab: string;
+      diorfyStudioTab: string;
+      createMeetRoom: string;
+      openGoogleMeet: string;
+      copyMeetLink: string;
+      joinWithMeetCode: string;
+      meetCodePlaceholder: string;
+    };
+    ai: {
+      generateStickyNotes: string;
+      generateMindmap: string;
+      generateUserJourney: string;
+      generateSwot: string;
+      generateSprintRetro: string;
+      promptPlaceholder: string;
+      generateButton: string;
+      aiThinking: string;
+      expandNode: string;
+      summarizeSelection: string;
+    };
+    mindmapStudio: {
+      title: string;
+      subtitle: string;
+      addNode: string;
+      addChild: string;
+      addSibling: string;
+      layout: string;
+      radial: string;
+      tree: string;
+      fishbone: string;
+      funnel: string;
+      exportToCanvas: string;
+    };
+    slideMotion: {
+      title: string;
+      subtitle: string;
+      addSlide: string;
+      playSlideshow: string;
+      transitionSpeed: string;
+      exitPresentation: string;
+    };
+    exportModal: {
+      title: string;
+      exportPng: string;
+      exportSvg: string;
+      exportPdf: string;
+      exportJson: string;
+      highResolution: string;
+      downloadSuccess: string;
+    };
+    shareModal: {
+      title: string;
+      subtitle: string;
+      linkAccess: string;
+      canEdit: string;
+      canView: string;
+      canComment: string;
+      copyLink: string;
+      linkCopied: string;
+      inviteByEmail: string;
+      sendInvite: string;
+    };
+    shortcutsModal: {
+      title: string;
+      navigation: string;
+      creation: string;
+      editing: string;
+      actions: string;
+    };
+  };
+  auth: {
+    loginTitle: string;
+    loginSubtitle: string;
+    registerTitle: string;
+    registerSubtitle: string;
+    emailLabel: string;
+    emailPlaceholder: string;
+    passwordLabel: string;
+    passwordPlaceholder: string;
+    nameLabel: string;
+    namePlaceholder: string;
+    signInButton: string;
+    signUpButton: string;
+    noAccount: string;
+    haveAccount: string;
+    googleSignIn: string;
+    guestDemo: string;
+    termsAgreement: string;
+    loginSuccess: string;
+    invalidCredentials: string;
+  };
+  checkout: {
+    title: string;
+    subtitle: string;
+    billingSummary: string;
+    paymentMethod: string;
+    creditCard: string;
+    pix: string;
+    cardNumber: string;
+    cardExpiry: string;
+    cardCvc: string;
+    cardName: string;
+    pixInstruction: string;
+    pixQrCodeNotice: string;
+    pixCopyCode: string;
+    pixSimulatePaid: string;
+    pixExpiredTime: string;
+    completePayment: string;
+    processing: string;
+    successTitle: string;
+    successMessage: string;
+    startCreating: string;
+    secureBadge: string;
+    guaranteeDays: string;
+  };
+}
