@@ -1775,22 +1775,27 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
     showToast(`Fonte de Tráfego "${title}" adicionada!`, '📣');
   };
 
-  // Insert Funnel Action
-  const handleInsertFunnelAction = (actionType: string, title: string) => {
+  // Insert Funnel Action (Defaults to Compra Aprovada with R$ 197,00)
+  const handleInsertFunnelAction = (
+    actionType: string = 'purchase-approved',
+    title: string = 'Compra Aprovada',
+    metric: string = 'R$ 197,00'
+  ) => {
     playSound.pop();
     const world = screenToWorld(window.innerWidth / 2, window.innerHeight / 2);
     const newActionEl: CanvasElement = {
       id: `act-${Date.now()}`,
       type: 'funnel-action',
-      x: snapVal(world.x - 100),
+      x: snapVal(world.x - 110),
       y: snapVal(world.y - 30),
-      width: 200,
-      height: 60,
+      width: 220,
+      height: 56,
       zIndex: elements.length + 3,
       content: title,
       style: {
         actionType,
-        backgroundColor: '#0f172a',
+        metricValue: metric,
+        backgroundColor: '#ffffff',
       },
       createdAt: Date.now(),
     };
@@ -1798,7 +1803,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
     setElements(updated);
     setSelectedElementIds([newActionEl.id]);
     pushHistory(updated, frames);
-    showToast(`Ação "${title}" adicionada!`, '🎯');
+    showToast(`Ação "${title}" adicionada!`, '🛒');
   };
 
   // Start drag or connect on an element
@@ -2847,6 +2852,13 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
                       setSelectedElementIds([el.id]);
                     }}
                     onUpdateContent={handleUpdateContent}
+                    onUpdateStyle={(id, styleUpdates) => {
+                      const updated = elements.map((item) =>
+                        item.id === id ? { ...item, style: { ...item.style, ...styleUpdates } } : item
+                      );
+                      setElements(updated);
+                      pushHistory(updated, frames);
+                    }}
                     onStartConnect={handleStartConnect}
                   />
                 </div>

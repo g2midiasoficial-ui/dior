@@ -549,14 +549,105 @@ export const FunnelWireframesDrawer: React.FC<FunnelWireframesDrawerProps> = ({
 
   // Actions List
   const actionsList = [
-    { id: 'purchase-approved', label: 'Compra Aprovada', metric: 'R$ 197 / lead' },
-    { id: 'lead-optin', label: 'Lead Cadastrado', metric: '42% conv.' },
-    { id: 'link-click', label: 'Clique no Botão / CTA', metric: '1.4k cliques' },
-    { id: 'meeting-scheduled', label: 'Reunião Agendada', metric: '18 agendados' },
-    { id: 'tag-crm', label: 'Tag Aplicada no CRM', metric: 'Tag: Lead Quente' },
-    { id: 'video-view-50', label: '50% Vídeo Assistido', metric: 'Retenção alta' },
-    { id: 'abandoned-cart', label: 'Carrinho Abandonado', metric: 'Disparar e-mail' },
-    { id: 'webhook-fired', label: 'Webhook Disparado', metric: 'Status: 200 OK' },
+    {
+      id: 'purchase-approved',
+      label: 'Compra Aprovada',
+      metric: 'R$ 197,00',
+      description: 'Venda aprovada no checkout',
+      icon: <CreditCard className="w-4 h-4" />,
+      bgGradient: 'from-emerald-500 to-green-600',
+      badgeBg: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+    },
+    {
+      id: 'pix-approved',
+      label: 'PIX Aprovado / Gerado',
+      metric: 'R$ 197,00',
+      description: 'Pagamento instantâneo via PIX',
+      icon: <Target className="w-4 h-4" />,
+      bgGradient: 'from-teal-500 to-emerald-600',
+      badgeBg: 'bg-teal-50 border-teal-200 text-teal-700',
+    },
+    {
+      id: 'boleto-generated',
+      label: 'Boleto Bancário',
+      metric: 'R$ 197,00',
+      description: 'Boleto gerado pelo cliente',
+      icon: <CreditCard className="w-4 h-4" />,
+      bgGradient: 'from-amber-500 to-orange-600',
+      badgeBg: 'bg-amber-50 border-amber-200 text-amber-700',
+    },
+    {
+      id: 'credit-card',
+      label: 'Cartão de Crédito',
+      metric: 'R$ 297,00',
+      description: 'Transação processada no cartão',
+      icon: <CreditCard className="w-4 h-4" />,
+      bgGradient: 'from-indigo-500 to-blue-600',
+      badgeBg: 'bg-indigo-50 border-indigo-200 text-indigo-700',
+    },
+    {
+      id: 'upsell-orderbump',
+      label: 'Upsell / Order Bump',
+      metric: '+ R$ 47,00',
+      description: 'Oferta complementar aceita',
+      icon: <TrendingUp className="w-4 h-4" />,
+      bgGradient: 'from-violet-500 to-purple-600',
+      badgeBg: 'bg-violet-50 border-violet-200 text-violet-700',
+    },
+    {
+      id: 'abandoned-cart',
+      label: 'Carrinho Abandonado',
+      metric: 'Recuperar',
+      description: 'Disparar régua de recuperação',
+      icon: <Target className="w-4 h-4" />,
+      bgGradient: 'from-rose-500 to-pink-600',
+      badgeBg: 'bg-rose-50 border-rose-200 text-rose-700',
+    },
+    {
+      id: 'lead-optin',
+      label: 'Lead Cadastrado',
+      metric: '48% taxa',
+      description: 'Novo contato registrado no funil',
+      icon: <User className="w-4 h-4" />,
+      bgGradient: 'from-sky-500 to-cyan-600',
+      badgeBg: 'bg-sky-50 border-sky-200 text-sky-700',
+    },
+    {
+      id: 'meeting-scheduled',
+      label: 'Reunião Agendada',
+      metric: '18 agendados',
+      description: 'Call de fechamento marcada',
+      icon: <Calendar className="w-4 h-4" />,
+      bgGradient: 'from-amber-600 to-yellow-600',
+      badgeBg: 'bg-amber-50 border-amber-200 text-amber-700',
+    },
+    {
+      id: 'subscription',
+      label: 'Assinatura Recorrente',
+      metric: 'R$ 97/mês',
+      description: 'Plano com renovação automática',
+      icon: <TrendingUp className="w-4 h-4" />,
+      bgGradient: 'from-emerald-600 to-teal-700',
+      badgeBg: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+    },
+    {
+      id: 'tag-crm',
+      label: 'Tag Aplicada no CRM',
+      metric: 'Tag: Quente',
+      description: 'Etiqueta de segmentação no lead',
+      icon: <Target className="w-4 h-4" />,
+      bgGradient: 'from-teal-600 to-cyan-700',
+      badgeBg: 'bg-teal-50 border-teal-200 text-teal-700',
+    },
+    {
+      id: 'webhook-fired',
+      label: 'Webhook / API Disparado',
+      metric: 'Status: 200',
+      description: 'Integração externa acionada',
+      icon: <Target className="w-4 h-4" />,
+      bgGradient: 'from-cyan-500 to-blue-600',
+      badgeBg: 'bg-cyan-50 border-cyan-200 text-cyan-700',
+    },
   ];
 
   return (
@@ -782,7 +873,10 @@ export const FunnelWireframesDrawer: React.FC<FunnelWireframesDrawerProps> = ({
         {/* TAB 3: AÇÕES DE CONVERSÃO */}
         {activeTab === 'acoes' && (
           <div>
-            <h3 className="text-sm font-bold text-slate-900 mb-3">Ações & Eventos de Conversão</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-slate-900">Ações & Eventos de Conversão</h3>
+              <span className="text-[10px] text-slate-400 font-medium">Clique para inserir no quadro</span>
+            </div>
             <div className="space-y-2">
               {actionsList.map((ac) => (
                 <button
@@ -791,20 +885,20 @@ export const FunnelWireframesDrawer: React.FC<FunnelWireframesDrawerProps> = ({
                     playSound.pop();
                     onInsertAction(ac.id, ac.label, ac.metric);
                   }}
-                  className="w-full p-2.5 rounded-2xl border border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50/30 hover:shadow-md transition-all flex items-center justify-between group cursor-pointer text-left"
+                  className="w-full p-2.5 rounded-2xl border border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50/20 hover:shadow-md transition-all flex items-center justify-between group cursor-pointer text-left"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Target className="w-4 h-4" />
+                    <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${ac.bgGradient} text-white flex items-center justify-center group-hover:scale-110 shadow-xs transition-transform`}>
+                      {ac.icon}
                     </div>
                     <div>
                       <p className="text-xs font-bold text-slate-900 group-hover:text-emerald-700">
                         {ac.label}
                       </p>
-                      <p className="text-[10px] text-slate-500">Evento de rastreamento do funil</p>
+                      <p className="text-[10px] text-slate-500">{ac.description}</p>
                     </div>
                   </div>
-                  <span className="text-[10px] font-mono font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border shadow-2xs ${ac.badgeBg}`}>
                     {ac.metric}
                   </span>
                 </button>
