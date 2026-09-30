@@ -16,7 +16,12 @@ import {
   Search,
 } from 'lucide-react';
 import { playSound } from '../../utils/soundEffects';
-import { renderTrafficIcon, TrafficIconData } from './FunnelIcons';
+import {
+  renderTrafficIcon,
+  TrafficIconData,
+  renderActionDiamondIcon,
+  ACTIONS_CATEGORIES,
+} from './FunnelIcons';
 
 interface FunnelWireframesDrawerProps {
   isOpen: boolean;
@@ -870,39 +875,83 @@ export const FunnelWireframesDrawer: React.FC<FunnelWireframesDrawerProps> = ({
           </>
         )}
 
-        {/* TAB 3: AÇÕES DE CONVERSÃO */}
+        {/* TAB 3: AÇÕES (Matching uploaded image exactly) */}
         {activeTab === 'acoes' && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-slate-900">Ações & Eventos de Conversão</h3>
-              <span className="text-[10px] text-slate-400 font-medium">Clique para inserir no quadro</span>
-            </div>
-            <div className="space-y-2">
-              {actionsList.map((ac) => (
-                <button
-                  key={ac.id}
-                  onClick={() => {
-                    playSound.pop();
-                    onInsertAction(ac.id, ac.label, ac.metric);
-                  }}
-                  className="w-full p-2.5 rounded-2xl border border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50/20 hover:shadow-md transition-all flex items-center justify-between group cursor-pointer text-left"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${ac.bgGradient} text-white flex items-center justify-center group-hover:scale-110 shadow-xs transition-transform`}>
-                      {ac.icon}
+          <div className="space-y-6">
+            {ACTIONS_CATEGORIES.map((cat) => (
+              <div key={cat.categoryKey} className="space-y-2.5">
+                <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                  <h4 className="text-xs font-bold text-slate-700 tracking-wide">
+                    {cat.title}
+                  </h4>
+                </div>
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                  {cat.items.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => {
+                        playSound.pop();
+                        onInsertAction(item.id, item.label, item.defaultMetric);
+                      }}
+                      className="flex flex-col items-center gap-1.5 group cursor-pointer"
+                      title={item.label}
+                    >
+                      <div className="transition-transform group-hover:scale-115 active:scale-95">
+                        {renderActionDiamondIcon(item.id, 46)}
+                      </div>
+                      <span className="text-[10px] text-slate-500 text-center truncate max-w-[62px] group-hover:text-blue-600">
+                        {item.shortLabel}
+                      </span>
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-900 group-hover:text-emerald-700">
-                        {ac.label}
-                      </p>
-                      <p className="text-[10px] text-slate-500">{ac.description}</p>
-                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Custom Uploaded Action Icons Section */}
+            <div className="pt-3 border-t border-slate-200">
+              <h4 className="text-xs font-bold text-slate-700 mb-3">
+                Ícones personalizados carregados
+              </h4>
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                {/* + Adicionar Button Card */}
+                <label className="flex flex-col items-center gap-1.5 group cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*,.svg"
+                    onChange={handleCustomUpload}
+                    className="hidden"
+                  />
+                  <div className="transition-transform group-hover:scale-115 active:scale-95">
+                    {renderActionDiamondIcon('action-custom-add', 46)}
                   </div>
-                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border shadow-2xs ${ac.badgeBg}`}>
-                    {ac.metric}
+                  <span className="text-[10px] text-slate-500 text-center group-hover:text-blue-600">
+                    Adicionar
                   </span>
-                </button>
-              ))}
+                </label>
+
+                {/* Custom User Icons List */}
+                {customIcons.map((ci) => (
+                  <div
+                    key={ci.id}
+                    onClick={() => {
+                      playSound.pop();
+                      onInsertAction('custom-action', ci.name, 'R$ 197,00');
+                    }}
+                    className="flex flex-col items-center gap-1.5 group cursor-pointer"
+                    title={ci.name}
+                  >
+                    <div className="w-10 h-10 rounded-[10px] rotate-45 border border-slate-300 bg-white p-1 overflow-hidden shadow-2xs group-hover:border-blue-500 group-hover:scale-110 transition-all flex items-center justify-center">
+                      <div className="-rotate-45 w-full h-full flex items-center justify-center">
+                        <img src={ci.url} alt={ci.name} className="w-full h-full object-contain" />
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-slate-500 text-center truncate max-w-[62px]">
+                      {ci.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}

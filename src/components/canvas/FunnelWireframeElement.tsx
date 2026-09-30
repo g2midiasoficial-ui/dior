@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { CanvasElement } from '../../types/miro';
-import { renderTrafficIcon } from './FunnelIcons';
+import {
+  renderTrafficIcon,
+  renderActionDiamondIcon,
+  ACTIONS_CATEGORIES,
+  ActionItemData,
+} from './FunnelIcons';
 import {
   Download,
   CheckCircle2,
@@ -614,6 +619,18 @@ export const FunnelWireframeElement: React.FC<FunnelWireframeElementProps> = ({
 
   // If this element is a Funnel Action (Compra Aprovada, PIX, Boleto, etc.)
   if (element.type === 'funnel-action') {
+    const actionId = element.style.actionType || 'action-comprar';
+    let currentItem: ActionItemData | undefined;
+    for (const cat of ACTIONS_CATEGORIES) {
+      const f = cat.items.find((it) => it.id === actionId || it.id === element.style.actionType);
+      if (f) {
+        currentItem = f;
+        break;
+      }
+    }
+
+    const badgeColor = currentItem?.bgColor || '#059669';
+
     return (
       <div
         onClick={onSelect}
@@ -627,26 +644,23 @@ export const FunnelWireframeElement: React.FC<FunnelWireframeElementProps> = ({
           height: `${element.height}px`,
           zIndex: element.zIndex,
         }}
-        className={`group select-none cursor-move flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-2xl bg-white border-2 shadow-md transition-all ${
+        className={`group select-none cursor-move flex items-center justify-between gap-2 px-2.5 py-2 rounded-2xl bg-white border-2 shadow-md transition-all ${
           isSelected
             ? 'border-blue-600 ring-4 ring-blue-500/20 shadow-xl'
             : 'border-slate-200 hover:border-emerald-400 hover:shadow-lg'
         }`}
       >
-        {/* Left Clickable Action Icon Button */}
+        {/* Left Clickable Action Diamond Icon Button */}
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             setIsActionPickerOpen((prev) => !prev);
           }}
-          className={`w-9 h-9 rounded-xl bg-gradient-to-br ${actionConfig.bgGradient} text-white flex items-center justify-center shrink-0 shadow-sm hover:scale-110 active:scale-95 transition-all cursor-pointer relative group/icon`}
-          title="Clique para escolher ação e trocar ícone"
+          className="shrink-0 hover:scale-110 active:scale-95 transition-transform cursor-pointer relative group/icon"
+          title="Clique para trocar ícone / ação"
         >
-          {renderActionIcon(actionConfig.iconName, 'w-4.5 h-4.5')}
-          <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-white border border-slate-300 rounded-full flex items-center justify-center text-slate-700 opacity-0 group-hover/icon:opacity-100 transition-opacity">
-            <SlidersHorizontal className="w-2 h-2" />
-          </span>
+          {renderActionDiamondIcon(actionId, 40)}
         </button>
 
         {/* Middle Title Area */}
@@ -712,7 +726,7 @@ export const FunnelWireframeElement: React.FC<FunnelWireframeElementProps> = ({
                 e.stopPropagation();
                 setIsEditingValue(true);
               }}
-              className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border shadow-2xs hover:scale-105 active:scale-95 transition-all cursor-pointer ${actionConfig.badgeBg}`}
+              className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border shadow-2xs hover:scale-105 active:scale-95 transition-all cursor-pointer bg-emerald-50 border-emerald-200 text-emerald-700"
               title="Clique para alterar valor"
             >
               {element.style.metricValue || valueText || 'R$ 197,00'}
@@ -724,7 +738,7 @@ export const FunnelWireframeElement: React.FC<FunnelWireframeElementProps> = ({
         {isActionPickerOpen && (
           <div
             onClick={(e) => e.stopPropagation()}
-            className="absolute left-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 p-3.5 z-50 animate-in fade-in zoom-in-95 select-none"
+            className="absolute left-0 top-full mt-2 w-88 bg-white rounded-2xl shadow-2xl border border-slate-200 p-3.5 z-50 animate-in fade-in zoom-in-95 select-none"
           >
             <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-100">
               <div className="flex items-center gap-1.5">
@@ -787,40 +801,50 @@ export const FunnelWireframeElement: React.FC<FunnelWireframeElementProps> = ({
               </div>
             </div>
 
-            {/* Action Types Grid */}
-            <div>
-              <p className="text-[11px] font-bold text-slate-700 mb-1.5">Escolha o Tipo de Ação:</p>
-              <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pr-1">
-                {FUNNEL_ACTION_OPTIONS.map((opt) => {
-                  const isCurrent = opt.id === currentActionType;
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => handleSelectAction(opt)}
-                      className={`p-2 rounded-xl border text-left flex items-start gap-2 transition-all cursor-pointer ${
-                        isCurrent
-                          ? 'border-blue-600 bg-blue-50/70 shadow-xs ring-1 ring-blue-500/30'
-                          : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div
-                        className={`w-7 h-7 rounded-lg bg-gradient-to-br ${opt.bgGradient} text-white flex items-center justify-center shrink-0 shadow-2xs`}
-                      >
-                        {renderActionIcon(opt.iconName, 'w-3.5 h-3.5')}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[11px] font-bold text-slate-900 truncate leading-tight">
-                          {opt.label}
-                        </p>
-                        <p className="text-[9px] text-slate-500 font-mono mt-0.5 truncate">
-                          {opt.defaultMetric}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+            {/* Action Types Categorized List */}
+            <div className="space-y-2.5 max-h-52 overflow-y-auto pr-1">
+              {ACTIONS_CATEGORIES.map((cat) => (
+                <div key={cat.categoryKey}>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    {cat.title}
+                  </p>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {cat.items.map((it) => {
+                      const isCurrent = it.id === actionId;
+                      return (
+                        <button
+                          key={it.id}
+                          type="button"
+                          onClick={() => {
+                            onUpdateContent(element.id, it.label);
+                            setTitleText(it.label);
+                            if (onUpdateStyle) {
+                              onUpdateStyle(element.id, {
+                                actionType: it.id,
+                                metricValue: valueText || it.defaultMetric,
+                              });
+                            }
+                            setIsActionPickerOpen(false);
+                          }}
+                          className={`p-1.5 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer ${
+                            isCurrent
+                              ? 'border-blue-600 bg-blue-50/70 shadow-xs ring-1 ring-blue-500/30'
+                              : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                          }`}
+                          title={it.label}
+                        >
+                          <div className="scale-90">
+                            {renderActionDiamondIcon(it.id, 36)}
+                          </div>
+                          <span className="text-[9px] font-bold text-slate-700 text-center truncate max-w-full">
+                            {it.shortLabel}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

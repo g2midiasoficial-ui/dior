@@ -778,3 +778,506 @@ export const renderTrafficIcon = (id: string, size = 40, hasDollar = false) => {
     </div>
   );
 };
+
+export interface ActionItemData {
+  id: string;
+  label: string;
+  shortLabel: string;
+  bgColor: string;
+  defaultMetric: string;
+  description: string;
+}
+
+export interface ActionCategoryData {
+  categoryKey: string;
+  title: string;
+  items: ActionItemData[];
+}
+
+export const ACTIONS_CATEGORIES: ActionCategoryData[] = [
+  {
+    categoryKey: 'conversao',
+    title: 'Ações de conversão',
+    items: [
+      {
+        id: 'action-comprar',
+        label: 'Comprar',
+        shortLabel: 'Comprar',
+        bgColor: '#059669',
+        defaultMetric: 'R$ 197,00',
+        description: 'Venda finalizada e pagamento aprovado',
+      },
+      {
+        id: 'action-formulario',
+        label: 'Formulário preenchido',
+        shortLabel: 'Formulário ...',
+        bgColor: '#f59e0b',
+        defaultMetric: '42% conv.',
+        description: 'Lead preencheu formulário / opt-in',
+      },
+      {
+        id: 'action-agendar-reuniao',
+        label: 'Agendar reunião',
+        shortLabel: 'Agendar re...',
+        bgColor: '#0284c7',
+        defaultMetric: '18 agendados',
+        description: 'Call ou demonstração agendada',
+      },
+      {
+        id: 'action-negocio-fechado',
+        label: 'Negócio fechado',
+        shortLabel: 'Negócio fe...',
+        bgColor: '#059669',
+        defaultMetric: 'R$ 997,00',
+        description: 'Contrato assinado / negócio ganho',
+      },
+    ],
+  },
+  {
+    categoryKey: 'engajamento',
+    title: 'Ações de engajamento',
+    items: [
+      {
+        id: 'action-assista-video',
+        label: 'Assista ao vídeo',
+        shortLabel: 'Assista ao ...',
+        bgColor: '#e11d48',
+        defaultMetric: '78% retenção',
+        description: 'Visualização de VSL / Vídeo',
+      },
+      {
+        id: 'action-clique-link',
+        label: 'Clique no link',
+        shortLabel: 'Clique no li...',
+        bgColor: '#0d9488',
+        defaultMetric: '1.4k cliques',
+        description: 'Clique em hiperlink externo',
+      },
+      {
+        id: 'action-rolar',
+        label: 'Rolar a página',
+        shortLabel: 'Rolar',
+        bgColor: '#0284c7',
+        defaultMetric: '85% scroll',
+        description: 'Scroll até metade ou fim da página',
+      },
+      {
+        id: 'action-clique-botao',
+        label: 'Clique no botão / CTA',
+        shortLabel: 'Clique no b...',
+        bgColor: '#8b5cf6',
+        defaultMetric: '620 cliques',
+        description: 'Clique no botão principal de compra/cadastro',
+      },
+      {
+        id: 'action-status-negocio',
+        label: 'Status do negócio',
+        shortLabel: 'Status do n...',
+        bgColor: '#ea580c',
+        defaultMetric: 'Etapa: Proposta',
+        description: 'Mudança de status no pipeline',
+      },
+    ],
+  },
+  {
+    categoryKey: 'integracao',
+    title: 'Ações de integração',
+    items: [
+      {
+        id: 'action-nomeacao-ghl',
+        label: 'Nomeação / Agendamento GHL',
+        shortLabel: 'Nomeação ...',
+        bgColor: '#1d4ed8',
+        defaultMetric: 'Sincronizado',
+        description: 'Integração de agendamento no CRM',
+      },
+      {
+        id: 'action-ordem-ghl',
+        label: 'Ordem GHL',
+        shortLabel: 'Ordem GHL',
+        bgColor: '#059669',
+        defaultMetric: 'R$ 297,00',
+        description: 'Ordem de pedido no CRM',
+      },
+      {
+        id: 'action-oportunidade-criada',
+        label: 'Oportunidade criada',
+        shortLabel: 'Oportunida...',
+        bgColor: '#ea580c',
+        defaultMetric: 'Criada',
+        description: 'Novo card no funil de vendas',
+      },
+      {
+        id: 'action-oportunidade-ganha',
+        label: 'Oportunidade ganha',
+        shortLabel: 'Oportunida...',
+        bgColor: '#059669',
+        defaultMetric: 'R$ 1.497',
+        description: 'Negócio marcado como ganho',
+      },
+      {
+        id: 'action-oferta-oportunidade',
+        label: 'Oferta da oportunidade',
+        shortLabel: 'Oferta da ...',
+        bgColor: '#ea580c',
+        defaultMetric: 'Oferta enviada',
+        description: 'Proposta comercial despachada',
+      },
+      {
+        id: 'action-negocio-fechado-ghl',
+        label: 'Negócio fechado GHL',
+        shortLabel: 'Negócio fe...',
+        bgColor: '#059669',
+        defaultMetric: 'R$ 497,00',
+        description: 'Fechamento automatizado via webhook',
+      },
+    ],
+  },
+  {
+    categoryKey: 'personalizadas',
+    title: 'Ações personalizadas',
+    items: [
+      {
+        id: 'action-adicionar-lista',
+        label: 'Adicionar à lista',
+        shortLabel: 'Adicionar à...',
+        bgColor: '#334155',
+        defaultMetric: 'Lista: VIP',
+        description: 'Inserção em lista de contatos / automação',
+      },
+      {
+        id: 'action-contato',
+        label: 'Contato / Chat',
+        shortLabel: 'Contato',
+        bgColor: '#334155',
+        defaultMetric: 'Mensagem enviada',
+        description: 'Interação direta no chat / WhatsApp',
+      },
+      {
+        id: 'action-solicitar-comentario',
+        label: 'Solicitar comentário',
+        shortLabel: 'Solicitar co...',
+        bgColor: '#a855f7',
+        defaultMetric: 'Feedback',
+        description: 'Pesquisa de satisfação ou review',
+      },
+      {
+        id: 'action-solicitar-informacoes',
+        label: 'Solicitar informações',
+        shortLabel: 'Solicitar inf...',
+        bgColor: '#0ea5e9',
+        defaultMetric: 'Form aberto',
+        description: 'Formulário com campos adicionais',
+      },
+      {
+        id: 'action-aparecer-popup',
+        label: 'Aparecer popup',
+        shortLabel: 'Aparecer',
+        bgColor: '#e11d48',
+        defaultMetric: 'Modal ativo',
+        description: 'Popup de saída ou desconto especial',
+      },
+      {
+        id: 'action-adicionar-carrinho',
+        label: 'Adicionar ao carrinho',
+        shortLabel: 'Adicionar a...',
+        bgColor: '#06b6d4',
+        defaultMetric: 'Item adicionado',
+        description: 'Lead adicionou produto no carrinho',
+      },
+      {
+        id: 'action-adicionar-etiqueta',
+        label: 'Adicionar etiqueta',
+        shortLabel: 'Adicionar e...',
+        bgColor: '#ea580c',
+        defaultMetric: 'Tag: Quente',
+        description: 'Etiqueta de qualificação no CRM',
+      },
+    ],
+  },
+];
+
+// Helper to render the iconic Diamond / Rhombus Action Icons
+export const renderActionDiamondIcon = (id: string, size = 48) => {
+  // Inner icon artwork
+  const renderInner = () => {
+    switch (id) {
+      // 1. AÇÕES DE CONVERSÃO
+      case 'action-comprar':
+        return <span className="text-white text-xl font-bold font-sans select-none leading-none">$</span>;
+
+      case 'action-formulario':
+        return (
+          <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+          </svg>
+        );
+
+      case 'action-agendar-reuniao':
+        return (
+          <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24">
+            <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zm-8 4h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z" />
+          </svg>
+        );
+
+      case 'action-negocio-fechado':
+        return (
+          <div className="flex flex-col items-center justify-center">
+            <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24">
+              <path d="M18.5 7.5L16 5l-7.5 7.5-2.5-2.5L3.5 12.5 8.5 17.5 18.5 7.5z M21.5 10.5L19 8l-5.5 5.5 2.5 2.5L21.5 10.5z" />
+            </svg>
+            <span className="text-[9px] font-black text-white leading-none -mt-0.5 select-none">$</span>
+          </div>
+        );
+
+      // 2. AÇÕES DE ENGAJAMENTO
+      case 'action-assista-video':
+        return (
+          <div className="w-5.5 h-4.5 rounded-[4px] border-2 border-white flex items-center justify-center">
+            <div className="w-0 h-0 border-t-[3.5px] border-t-transparent border-b-[3.5px] border-b-transparent border-l-[6px] border-l-white ml-0.5" />
+          </div>
+        );
+
+      case 'action-clique-link':
+        return (
+          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+          </svg>
+        );
+
+      case 'action-rolar':
+        return (
+          <div className="w-5 h-5 rounded-full border-2 border-white flex items-center justify-center">
+            <svg className="w-3.5 h-3.5 fill-white" viewBox="0 0 24 24">
+              <path d="M12 4l-4 4h3v8H8l4 4 4-4h-3V8h3z" />
+            </svg>
+          </div>
+        );
+
+      case 'action-clique-botao':
+        return (
+          <svg className="w-5 h-5 text-white -rotate-12" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 4l16 5.5-7.5 3-3 7.5z" />
+          </svg>
+        );
+
+      case 'action-status-negocio':
+        return (
+          <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24">
+            <path d="M18.5 7.5L16 5l-7.5 7.5-2.5-2.5L3.5 12.5 8.5 17.5 18.5 7.5z" />
+          </svg>
+        );
+
+      // 3. AÇÕES DE INTEGRAÇÃO (Com badge de topo)
+      case 'action-nomeacao-ghl':
+        return (
+          <div className="flex flex-col items-center justify-center">
+            <div className="flex items-center gap-0.5 mb-0.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-white" />
+              <div className="w-1.5 h-2 bg-white rounded-xs" />
+              <div className="w-1.5 h-3 bg-white rounded-xs" />
+            </div>
+            <svg className="w-4.5 h-4.5 fill-white" viewBox="0 0 24 24">
+              <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z" />
+            </svg>
+          </div>
+        );
+
+      case 'action-ordem-ghl':
+        return (
+          <div className="flex flex-col items-center justify-center">
+            <div className="flex items-center gap-0.5 mb-0.5">
+              <div className="w-1 h-2 bg-white rounded-xs" />
+              <div className="w-1 h-3 bg-white rounded-xs" />
+              <div className="w-1 h-1.5 bg-white rounded-xs" />
+            </div>
+            <span className="text-white text-base font-black font-sans leading-none select-none">$</span>
+          </div>
+        );
+
+      case 'action-oportunidade-criada':
+        return (
+          <div className="flex flex-col items-center justify-center">
+            <div className="flex items-center gap-0.5 mb-0.5">
+              <div className="w-1 h-2 bg-white rounded-xs" />
+              <div className="w-1 h-3 bg-white rounded-xs" />
+            </div>
+            <svg className="w-4.5 h-4.5 fill-white" viewBox="0 0 24 24">
+              <path d="M18.5 7.5L16 5l-7.5 7.5-2.5-2.5L3.5 12.5 8.5 17.5 18.5 7.5z" />
+            </svg>
+          </div>
+        );
+
+      case 'action-oportunidade-ganha':
+        return (
+          <div className="flex flex-col items-center justify-center">
+            <div className="flex items-center gap-0.5 mb-0.5">
+              <div className="w-1 h-1.5 bg-white rounded-xs" />
+              <div className="w-1 h-3 bg-white rounded-xs" />
+            </div>
+            <div className="flex items-center">
+              <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                <path d="M18.5 7.5L16 5l-7.5 7.5-2.5-2.5L3.5 12.5 8.5 17.5 18.5 7.5z" />
+              </svg>
+              <span className="text-[9px] font-black text-white leading-none -ml-1 select-none">$</span>
+            </div>
+          </div>
+        );
+
+      case 'action-oferta-oportunidade':
+        return (
+          <div className="flex flex-col items-center justify-center">
+            <div className="flex items-center gap-1 mb-0.5">
+              <div className="w-1.5 h-1.5 rounded-full border border-white" />
+              <div className="w-1.5 h-1.5 rounded-full bg-white" />
+            </div>
+            <svg className="w-4.5 h-4.5 fill-white" viewBox="0 0 24 24">
+              <path d="M18.5 7.5L16 5l-7.5 7.5-2.5-2.5L3.5 12.5 8.5 17.5 18.5 7.5z" />
+            </svg>
+          </div>
+        );
+
+      case 'action-negocio-fechado-ghl':
+        return (
+          <div className="flex flex-col items-center justify-center">
+            <div className="flex items-center gap-1 mb-0.5">
+              <div className="w-1.5 h-1.5 rounded-full border border-white" />
+              <div className="w-1.5 h-1.5 rounded-full bg-white" />
+            </div>
+            <div className="flex items-center">
+              <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                <path d="M18.5 7.5L16 5l-7.5 7.5-2.5-2.5L3.5 12.5 8.5 17.5 18.5 7.5z" />
+              </svg>
+              <span className="text-[9px] font-black text-white leading-none -ml-1 select-none">$</span>
+            </div>
+          </div>
+        );
+
+      // 4. AÇÕES PERSONALIZADAS
+      case 'action-adicionar-lista':
+        return (
+          <div className="flex flex-col gap-1 w-4.5">
+            <div className="flex items-center gap-1">
+              <div className="w-1 h-1 rounded-full bg-white shrink-0" />
+              <div className="h-0.5 bg-white rounded-full flex-1" />
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-1 h-1 rounded-full bg-white shrink-0" />
+              <div className="h-0.5 bg-white rounded-full flex-1" />
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-1 h-1 rounded-full bg-white shrink-0" />
+              <div className="h-0.5 bg-white rounded-full flex-1" />
+            </div>
+          </div>
+        );
+
+      case 'action-contato':
+        return (
+          <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" />
+          </svg>
+        );
+
+      case 'action-solicitar-comentario':
+        return (
+          <div className="relative">
+            <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24">
+              <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 pb-1">
+              <div className="w-2.5 h-0.5 bg-purple-600 rounded-full" />
+              <div className="w-2.5 h-0.5 bg-purple-600 rounded-full" />
+              <div className="w-1.5 h-0.5 bg-purple-600 rounded-full" />
+            </div>
+          </div>
+        );
+
+      case 'action-solicitar-informacoes':
+        return (
+          <div className="w-4.5 h-5.5 rounded-sm border-2 border-white flex flex-col items-center p-0.5">
+            <div className="w-2 h-1 bg-white rounded-xs mb-1" />
+            <div className="w-1.5 h-1.5 rounded-full bg-white mb-0.5" />
+            <div className="w-2.5 h-0.5 bg-white rounded-full" />
+          </div>
+        );
+
+      case 'action-aparecer-popup':
+        return (
+          <div className="w-5 h-5 rounded-xs border-2 border-white p-0.5 flex flex-col justify-between">
+            <div className="flex justify-end">
+              <span className="text-[7px] font-black text-white leading-none">✕</span>
+            </div>
+            <div className="space-y-0.5">
+              <div className="w-full h-0.5 bg-white rounded-full" />
+              <div className="w-2/3 h-0.5 bg-white rounded-full" />
+            </div>
+          </div>
+        );
+
+      case 'action-adicionar-carrinho':
+        return (
+          <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24">
+            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" />
+          </svg>
+        );
+
+      case 'action-adicionar-etiqueta':
+        return (
+          <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24">
+            <path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z" />
+          </svg>
+        );
+
+      // 5. CUSTOM ADD BUTTON
+      case 'action-custom-add':
+        return (
+          <div className="relative text-sky-500">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            <div className="absolute -bottom-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-sky-500 text-white flex items-center justify-center text-[10px] font-black shadow-xs">
+              +
+            </div>
+          </div>
+        );
+
+      default:
+        return <span className="text-white text-base font-black font-sans select-none">$</span>;
+    }
+  };
+
+  // Find background color from catalog
+  let bgColor = '#059669';
+  for (const cat of ACTIONS_CATEGORIES) {
+    const found = cat.items.find((item) => item.id === id);
+    if (found) {
+      bgColor = found.bgColor;
+      break;
+    }
+  }
+
+  const isCustomAdd = id === 'action-custom-add';
+
+  return (
+    <div
+      className="relative shrink-0 flex items-center justify-center"
+      style={{ width: `${size}px`, height: `${size}px` }}
+    >
+      <div
+        className={`w-9 h-9 rounded-[10px] rotate-45 flex items-center justify-center transition-transform shadow-xs ${
+          isCustomAdd ? 'bg-white border-2 border-sky-500' : ''
+        }`}
+        style={{ backgroundColor: isCustomAdd ? '#ffffff' : bgColor }}
+      >
+        <div className="-rotate-45 flex items-center justify-center">
+          {renderInner()}
+        </div>
+      </div>
+    </div>
+  );
+};
+
