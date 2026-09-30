@@ -22,6 +22,7 @@ import { TimerWidget } from './TimerWidget';
 import { VotingWidget } from './VotingWidget';
 import { AIModal } from './AIModal';
 import { PresentationMode } from './PresentationMode';
+import { FunnelWireframeElement } from './FunnelWireframeElement';
 import { ShareModal } from './ShareModal';
 import { ShortcutsModal } from './ShortcutsModal';
 import { VideoCallStudio } from './VideoCallStudio';
@@ -166,9 +167,34 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentStrokePoints, setCurrentStrokePoints] = useState<Point[]>([]);
 
-  // Connector drawing state
+  // Connector drawing & manual drag states
   const [connectorStartId, setConnectorStartId] = useState<string | null>(null);
   const [connectorAnchor, setConnectorAnchor] = useState<'top' | 'right' | 'bottom' | 'left'>('right');
+  const [isConnectingManual, setIsConnectingManual] = useState(false);
+  const [manualConnectStart, setManualConnectStart] = useState<{
+    x: number;
+    y: number;
+    elementId?: string;
+    anchor?: 'top' | 'right' | 'bottom' | 'left';
+  } | null>(null);
+  const [manualConnectCurrent, setManualConnectCurrent] = useState<{ x: number; y: number } | null>(null);
+
+  // Active connector tool settings (configured from arrow tool above T)
+  const [connectorConfig, setConnectorConfig] = useState<{
+    connectorType: 'curved' | 'straight' | 'orthogonal';
+    color: string;
+    strokeWidth: number;
+    borderStyle: 'solid' | 'dashed' | 'dotted';
+    arrowEnd: 'arrow' | 'dot' | 'none';
+    arrowStart: 'arrow' | 'dot' | 'none';
+  }>({
+    connectorType: 'curved',
+    color: '#3b82f6',
+    strokeWidth: 2.5,
+    borderStyle: 'solid',
+    arrowEnd: 'arrow',
+    arrowStart: 'none',
+  });
 
   // Modals & Studios
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -854,7 +880,14 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
         return;
       }
 
-      // 2. Freehand Drawing
+      // 2. Manual Connector Dragging
+      if (isConnectingManual && manualConnectStart) {
+        const world = screenToWorld(e.clientX, e.clientY);
+        setManualConnectCurrent(world);
+        return;
+      }
+
+      // 3. Freehand Drawing
       if (isDrawing) {
         const world = screenToWorld(e.clientX, e.clientY);
         setCurrentStrokePoints((prev) => [...prev, world]);
@@ -1005,7 +1038,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
       }
     };
 
-    const handleGlobalMouseUp = () => {
+    const handleGlobalMouseUp = (e: MouseEvent) => {
       if (isPanning) {
         setIsPanning(false);
       }
@@ -1055,9 +1088,92 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
         setIsDraggingElements(false);
         pushHistory(elements, frames);
       }
+
+      // 6. Complete Manual Connector Dragging
+      if (isConnectingManual && manualConnectStart) {
+        const endWorld = screenToWorld(e.clientX, e.clientY);
+        const distance = Math.hypot(endWorld.x - manualConnectStart.x, endWorld.y - manualConnectStart.y);
+
+        if (distance > 15) {
+          // Check if mouse was released over an element
+          const targetEl = elements.find(
+            (el) =>
+              el.id !== manualConnectStart.elementId &&
+              endWorld.x >= el.x &&
+              endWorld.x <= el.x + el.width &&
+              endWorld.y >= el.y &&
+              endWorld.y <= el.y + el.height
+          );
+
+          if (targetEl && manualConnectStart.elementId) {
+            handleCompleteConnection(
+              manualConnectStart.elementId,
+              targetEl.id,
+              manualConnectStart.anchor || 'right',
+              'left'
+            );
+          } else if (manualConnectStart.elementId) {
+            // Seta com origem no elemento e ponta solta
+            const newConnector: CanvasElement = {
+              id: `conn-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+              type: 'connector',
+              x: manualConnectStart.x,
+              y: manualConnectStart.y,
+              width: endWorld.x - manualConnectStart.x,
+              height: endWorld.y - manualConnectStart.y,
+              zIndex: elements.length + 3,
+              content: '',
+              style: {
+                sourceId: manualConnectStart.elementId,
+                sourceAnchor: manualConnectStart.anchor || 'right',
+                color: connectorConfig.color,
+                strokeWidth: connectorConfig.strokeWidth,
+                connectorType: connectorConfig.connectorType,
+                borderStyle: connectorConfig.borderStyle,
+                arrowEnd: connectorConfig.arrowEnd,
+                arrowStart: connectorConfig.arrowStart,
+              },
+              createdAt: Date.now(),
+            };
+            const updated = [...elements, newConnector];
+            setElements(updated);
+            pushHistory(updated, frames);
+            showToast('Seta manual criada!', '➔');
+          } else {
+            // Seta livre desenhada no canvas entre os pontos
+            const newConnector: CanvasElement = {
+              id: `conn-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+              type: 'connector',
+              x: manualConnectStart.x,
+              y: manualConnectStart.y,
+              width: endWorld.x - manualConnectStart.x,
+              height: endWorld.y - manualConnectStart.y,
+              zIndex: elements.length + 3,
+              content: '',
+              style: {
+                color: connectorConfig.color,
+                strokeWidth: connectorConfig.strokeWidth,
+                connectorType: connectorConfig.connectorType,
+                borderStyle: connectorConfig.borderStyle,
+                arrowEnd: connectorConfig.arrowEnd,
+                arrowStart: connectorConfig.arrowStart,
+              },
+              createdAt: Date.now(),
+            };
+            const updated = [...elements, newConnector];
+            setElements(updated);
+            pushHistory(updated, frames);
+            showToast('Seta manual desenhada!', '➔');
+          }
+          setConnectorStartId(null);
+        }
+        setIsConnectingManual(false);
+        setManualConnectStart(null);
+        setManualConnectCurrent(null);
+      }
     };
 
-    if (isPanning || isDrawing || isMarqueeSelecting || isResizing || isDraggingElements) {
+    if (isPanning || isDrawing || isMarqueeSelecting || isResizing || isDraggingElements || isConnectingManual) {
       window.addEventListener('mousemove', handleGlobalMouseMove);
       window.addEventListener('mouseup', handleGlobalMouseUp);
     }
@@ -1080,6 +1196,9 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
     dragStartPos,
     dragInitialElements,
     selectedElementIds,
+    isConnectingManual,
+    manualConnectStart,
+    connectorConfig,
     zoom,
     pan,
     elements,
@@ -1134,6 +1253,14 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
     if (activeTool === 'pen' || activeTool === 'highlighter') {
       setIsDrawing(true);
       setCurrentStrokePoints([world]);
+      return;
+    }
+
+    // Connector / Arrow Tool: start dragging/drawing manual arrow on canvas
+    if (activeTool === 'connector') {
+      setIsConnectingManual(true);
+      setManualConnectStart({ x: world.x, y: world.y });
+      setManualConnectCurrent({ x: world.x, y: world.y });
       return;
     }
 
@@ -1546,13 +1673,161 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
     createImageElementFromUrl(url, world.x, world.y, title || 'Imagem importada');
   };
 
-  // Start drag on an element
+  // Add Standalone Connector / Arrow with custom styles
+  const handleAddConnector = (
+    connectorType: 'curved' | 'straight' | 'orthogonal' = 'curved',
+    color: string = '#3b82f6',
+    strokeWidth: number = 2.5,
+    borderStyle: string = 'solid',
+    arrowEnd: string = 'arrow',
+    arrowStart: string = 'none'
+  ) => {
+    playSound.pop();
+    const world = screenToWorld(window.innerWidth / 2, window.innerHeight / 2);
+    const newConnector: CanvasElement = {
+      id: `conn-${Date.now()}`,
+      type: 'connector',
+      x: snapVal(world.x - 100),
+      y: snapVal(world.y),
+      width: 200,
+      height: 0,
+      zIndex: elements.length + 2,
+      content: '',
+      style: {
+        connectorType,
+        color,
+        strokeWidth,
+        borderStyle: borderStyle as any,
+        arrowEnd: arrowEnd as any,
+        arrowStart: arrowStart as any,
+      },
+      createdAt: Date.now(),
+    };
+    const updated = [...elements, newConnector];
+    setElements(updated);
+    setSelectedElementIds([newConnector.id]);
+    pushHistory(updated, frames);
+    showToast('Seta adicionada ao quadro!', '➔');
+  };
+
+  // Insert Funnel Page Wireframe
+  const handleInsertFunnelPage = (
+    funnelPageType: string,
+    title: string,
+    ctaText: string = 'CALL TO ACTION',
+    customSvg?: string
+  ) => {
+    playSound.pop();
+    const world = screenToWorld(window.innerWidth / 2, window.innerHeight / 2);
+    const newPageEl: CanvasElement = {
+      id: `fnl-${Date.now()}`,
+      type: 'funnel-page',
+      x: snapVal(world.x - 110),
+      y: snapVal(world.y - 140),
+      width: 220,
+      height: 280,
+      zIndex: elements.length + 3,
+      content: title,
+      style: {
+        funnelPageType,
+        ctaText,
+        customSvgIcon: customSvg,
+        backgroundColor: '#ffffff',
+      },
+      createdAt: Date.now(),
+    };
+    const updated = [...elements, newPageEl];
+    setElements(updated);
+    setSelectedElementIds([newPageEl.id]);
+    pushHistory(updated, frames);
+    showToast(`Página "${title}" inserida no quadro!`, '🌐');
+  };
+
+  // Insert Traffic Source
+  const handleInsertTrafficSource = (
+    trafficType: string,
+    title: string,
+    badge: string,
+    color: string
+  ) => {
+    playSound.pop();
+    const world = screenToWorld(window.innerWidth / 2, window.innerHeight / 2);
+    const newTrafficEl: CanvasElement = {
+      id: `trf-${Date.now()}`,
+      type: 'traffic-source',
+      x: snapVal(world.x - 70),
+      y: snapVal(world.y - 60),
+      width: 140,
+      height: 120,
+      zIndex: elements.length + 3,
+      content: title,
+      style: {
+        trafficSourceType: trafficType,
+        badge,
+        backgroundColor: color,
+      },
+      createdAt: Date.now(),
+    };
+    const updated = [...elements, newTrafficEl];
+    setElements(updated);
+    setSelectedElementIds([newTrafficEl.id]);
+    pushHistory(updated, frames);
+    showToast(`Fonte de Tráfego "${title}" adicionada!`, '📣');
+  };
+
+  // Insert Funnel Action
+  const handleInsertFunnelAction = (actionType: string, title: string) => {
+    playSound.pop();
+    const world = screenToWorld(window.innerWidth / 2, window.innerHeight / 2);
+    const newActionEl: CanvasElement = {
+      id: `act-${Date.now()}`,
+      type: 'funnel-action',
+      x: snapVal(world.x - 100),
+      y: snapVal(world.y - 30),
+      width: 200,
+      height: 60,
+      zIndex: elements.length + 3,
+      content: title,
+      style: {
+        actionType,
+        backgroundColor: '#0f172a',
+      },
+      createdAt: Date.now(),
+    };
+    const updated = [...elements, newActionEl];
+    setElements(updated);
+    setSelectedElementIds([newActionEl.id]);
+    pushHistory(updated, frames);
+    showToast(`Ação "${title}" adicionada!`, '🎯');
+  };
+
+  // Start drag or connect on an element
   const handleElementMouseDown = (e: React.MouseEvent, elementId: string) => {
     e.stopPropagation();
 
     // Eraser Tool clicked on element: cleanly erase the element and connected lines
     if (activeTool === 'eraser') {
       handleDeleteElements([elementId]);
+      return;
+    }
+
+    // If an anchor was already clicked OR connector tool is active, connect elements!
+    if (connectorStartId) {
+      if (connectorStartId !== elementId) {
+        handleCompleteConnection(connectorStartId, elementId, connectorAnchor || 'right', 'left');
+        setConnectorStartId(null);
+        return;
+      } else {
+        setConnectorStartId(null);
+        return;
+      }
+    }
+
+    if (activeTool === 'connector') {
+      playSound.click();
+      setConnectorStartId(elementId);
+      setConnectorAnchor('right');
+      showToast('Agora clique no segundo elemento para ligar a seta!', '🎯');
       return;
     }
 
@@ -1656,40 +1931,100 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
     );
   };
 
-  // Connecting shapes
+  // Complete connection between two elements with active arrow styles
+  const handleCompleteConnection = (
+    sourceId: string,
+    targetId: string,
+    sourceAnchor: 'top' | 'right' | 'bottom' | 'left' = 'right',
+    targetAnchor: 'top' | 'right' | 'bottom' | 'left' = 'left'
+  ) => {
+    if (sourceId === targetId) return;
+    playSound.pop();
+
+    const sourceEl = elements.find((el) => el.id === sourceId);
+    const targetEl = elements.find((el) => el.id === targetId);
+
+    // Smart anchor orientation if source/target positions are relative
+    let computedSourceAnchor = sourceAnchor;
+    let computedTargetAnchor = targetAnchor;
+    if (sourceEl && targetEl) {
+      if (targetEl.x < sourceEl.x - 30) {
+        computedSourceAnchor = 'left';
+        computedTargetAnchor = 'right';
+      } else if (targetEl.y > sourceEl.y + sourceEl.height + 20 && Math.abs(targetEl.x - sourceEl.x) < 80) {
+        computedSourceAnchor = 'bottom';
+        computedTargetAnchor = 'top';
+      } else if (targetEl.y < sourceEl.y - targetEl.height - 20 && Math.abs(targetEl.x - sourceEl.x) < 80) {
+        computedSourceAnchor = 'top';
+        computedTargetAnchor = 'bottom';
+      }
+    }
+
+    const newConnector: CanvasElement = {
+      id: `conn-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      type: 'connector',
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+      zIndex: 5,
+      content: '',
+      style: {
+        sourceId,
+        targetId,
+        sourceAnchor: computedSourceAnchor,
+        targetAnchor: computedTargetAnchor,
+        color: connectorConfig.color,
+        strokeWidth: connectorConfig.strokeWidth,
+        connectorType: connectorConfig.connectorType,
+        borderStyle: connectorConfig.borderStyle,
+        arrowEnd: connectorConfig.arrowEnd,
+        arrowStart: connectorConfig.arrowStart,
+      },
+      createdAt: Date.now(),
+    };
+
+    const updated = [...elements, newConnector];
+    setElements(updated);
+    pushHistory(updated, frames);
+    showToast('Elementos ligados com sucesso!', '🔗');
+  };
+
+  // Connecting shapes & wireframes
   const handleStartConnect = (elementId: string, anchor: 'top' | 'right' | 'bottom' | 'left') => {
     if (!connectorStartId) {
       playSound.click();
+      const el = elements.find((item) => item.id === elementId);
+      let startX = el ? el.x + el.width : 0;
+      let startY = el ? el.y + el.height / 2 : 0;
+
+      if (el) {
+        if (anchor === 'left') {
+          startX = el.x;
+          startY = el.y + el.height / 2;
+        } else if (anchor === 'top') {
+          startX = el.x + el.width / 2;
+          startY = el.y;
+        } else if (anchor === 'bottom') {
+          startX = el.x + el.width / 2;
+          startY = el.y + el.height;
+        }
+      }
+
       setConnectorStartId(elementId);
       setConnectorAnchor(anchor);
+      setIsConnectingManual(true);
+      setManualConnectStart({ x: startX, y: startY, elementId, anchor });
+      setManualConnectCurrent({ x: startX, y: startY });
+      showToast('Arraste ou clique no próximo elemento para ligar a seta!', '🔗');
     } else {
       if (connectorStartId !== elementId) {
-        playSound.pop();
-        const newConnector: CanvasElement = {
-          id: `conn-${Date.now()}`,
-          type: 'connector',
-          x: 0,
-          y: 0,
-          width: 100,
-          height: 100,
-          zIndex: 5,
-          content: '',
-          style: {
-            sourceId: connectorStartId,
-            targetId: elementId,
-            sourceAnchor: connectorAnchor,
-            targetAnchor: anchor,
-            color: '#3b82f6',
-            strokeWidth: 2,
-            arrowEnd: 'arrow',
-          },
-          createdAt: Date.now(),
-        };
-        const updated = [...elements, newConnector];
-        setElements(updated);
-        pushHistory(updated, frames);
+        handleCompleteConnection(connectorStartId, elementId, connectorAnchor || 'right', anchor);
       }
       setConnectorStartId(null);
+      setIsConnectingManual(false);
+      setManualConnectStart(null);
+      setManualConnectCurrent(null);
     }
   };
 
@@ -2328,9 +2663,44 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
                       }
                       setSelectedElementIds([conn.id]);
                     }}
+                    onDelete={(id) => {
+                      handleDeleteElements([id]);
+                    }}
+                    onUpdateContent={(id, content) => {
+                      handleUpdateContent(id, content);
+                    }}
                   />
                 );
               })}
+
+            {/* Live Interactive Manual Dragging Arrow Preview */}
+            {isConnectingManual && manualConnectStart && manualConnectCurrent && (
+              <g className="pointer-events-none">
+                <path
+                  d={
+                    connectorConfig.connectorType === 'orthogonal'
+                      ? `M ${manualConnectStart.x} ${manualConnectStart.y} L ${(manualConnectStart.x + manualConnectCurrent.x) / 2} ${manualConnectStart.y} L ${(manualConnectStart.x + manualConnectCurrent.x) / 2} ${manualConnectCurrent.y} L ${manualConnectCurrent.x} ${manualConnectCurrent.y}`
+                      : connectorConfig.connectorType === 'curved'
+                      ? `M ${manualConnectStart.x} ${manualConnectStart.y} C ${manualConnectStart.x + (manualConnectCurrent.x - manualConnectStart.x) * 0.5} ${manualConnectStart.y}, ${manualConnectStart.x + (manualConnectCurrent.x - manualConnectStart.x) * 0.5} ${manualConnectCurrent.y}, ${manualConnectCurrent.x} ${manualConnectCurrent.y}`
+                      : `M ${manualConnectStart.x} ${manualConnectStart.y} L ${manualConnectCurrent.x} ${manualConnectCurrent.y}`
+                  }
+                  fill="none"
+                  stroke={connectorConfig.color}
+                  strokeWidth={connectorConfig.strokeWidth + 1}
+                  strokeDasharray="6,4"
+                  strokeLinecap="round"
+                />
+                {/* Glowing Target Tip */}
+                <circle
+                  cx={manualConnectCurrent.x}
+                  cy={manualConnectCurrent.y}
+                  r={7}
+                  fill={connectorConfig.color}
+                  stroke="#ffffff"
+                  strokeWidth={2.5}
+                />
+              </g>
+            )}
 
             {/* Freehand drawing strokes */}
             {elements
@@ -2391,6 +2761,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
                     onAddReaction={handleAddReaction}
                     onVote={handleVote}
                     isVotingActive={isVotingActive}
+                    onStartConnect={handleStartConnect}
                   />
                 </div>
               );
@@ -2453,6 +2824,30 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
                     onDelete={(id) => {
                       handleDeleteElements([id]);
                     }}
+                  />
+                </div>
+              );
+            }
+
+            if (
+              el.type === 'funnel-page' ||
+              el.type === 'traffic-source' ||
+              el.type === 'funnel-action'
+            ) {
+              return (
+                <div
+                  key={el.id}
+                  onMouseDown={(e) => handleElementMouseDown(e, el.id)}
+                >
+                  <FunnelWireframeElement
+                    element={el}
+                    isSelected={isSelected}
+                    onSelect={(e) => {
+                      e.stopPropagation();
+                      setSelectedElementIds([el.id]);
+                    }}
+                    onUpdateContent={handleUpdateContent}
+                    onStartConnect={handleStartConnect}
                   />
                 </div>
               );
@@ -2704,6 +3099,8 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
       <CanvasToolbar
         activeTool={activeTool}
         onSelectTool={setActiveTool}
+        connectorConfig={connectorConfig}
+        onUpdateConnectorConfig={(upd) => setConnectorConfig((prev) => ({ ...prev, ...upd }))}
         onOpenAI={() => setIsAIOpen(true)}
         onOpenNanoBanana={() => setIsNanoBananaOpen(true)}
         onOpenAiAgent={() => setIsAiAgentOpen(true)}
@@ -2723,6 +3120,10 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
         onAddStickerEmoji={handleAddStickerEmoji}
         onAddImage={handleAddImage}
         onAddMindmapRootNode={handleAddMindmapRootNode}
+        onAddConnector={handleAddConnector}
+        onInsertFunnelPage={handleInsertFunnelPage}
+        onInsertTrafficSource={handleInsertTrafficSource}
+        onInsertAction={handleInsertFunnelAction}
       />
 
       {/* Floating Bottom-Right Canvas Controls */}

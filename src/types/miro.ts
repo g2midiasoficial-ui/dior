@@ -7,7 +7,10 @@ export type ElementType =
   | 'frame'
   | 'image'
   | 'stamp'
-  | 'mindmap';
+  | 'mindmap'
+  | 'funnel-page'
+  | 'traffic-source'
+  | 'funnel-action';
 
 export type ShapeType =
   | 'rectangle'
@@ -89,6 +92,15 @@ export interface ElementStyle {
   isMindmapRoot?: boolean;
   mindmapColor?: string;
   parentId?: string;
+  // Funnel & Wireframe specific
+  funnelPageType?: string;
+  trafficSourceType?: string;
+  actionType?: string;
+  badge?: string;
+  metricValue?: string;
+  metricLabel?: string;
+  ctaText?: string;
+  customSvgIcon?: string;
 }
 
 export interface CanvasElement {

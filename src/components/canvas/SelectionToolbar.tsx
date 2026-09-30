@@ -57,7 +57,9 @@ export const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
   const [customHex, setCustomHex] = useState('');
   const [justCopied, setJustCopied] = useState(false);
 
-  if (selectedElements.length === 0) return null;
+  if (selectedElements.length === 0 || (selectedElements.length === 1 && selectedElements[0].type === 'connector')) {
+    return null;
+  }
 
   const firstEl = selectedElements[0];
   const isLocked = !!firstEl.style.isLocked;

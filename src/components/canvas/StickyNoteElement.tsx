@@ -10,6 +10,7 @@ interface StickyNoteElementProps {
   onAddReaction: (id: string, emoji: string) => void;
   onVote: (id: string) => void;
   isVotingActive?: boolean;
+  onStartConnect?: (elementId: string, anchor: 'top' | 'right' | 'bottom' | 'left') => void;
 }
 
 export const StickyNoteElement: React.FC<StickyNoteElementProps> = ({
@@ -20,6 +21,7 @@ export const StickyNoteElement: React.FC<StickyNoteElementProps> = ({
   onAddReaction,
   onVote,
   isVotingActive,
+  onStartConnect,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState(element.content);
@@ -120,6 +122,48 @@ export const StickyNoteElement: React.FC<StickyNoteElementProps> = ({
           )}
         </div>
       </div>
+
+      {/* Anchor Connection Points for Lines */}
+      {isSelected && onStartConnect && (
+        <>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onStartConnect(element.id, 'top');
+            }}
+            className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-blue-500 rounded-full border border-white hover:scale-150 cursor-crosshair z-20 shadow-xs"
+            title="Conectar pelo topo"
+          />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onStartConnect(element.id, 'right');
+            }}
+            className="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3.5 h-3.5 bg-blue-500 rounded-full border border-white hover:scale-150 cursor-crosshair z-20 shadow-xs"
+            title="Conectar pela direita"
+          />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onStartConnect(element.id, 'bottom');
+            }}
+            className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-blue-500 rounded-full border border-white hover:scale-150 cursor-crosshair z-20 shadow-xs"
+            title="Conectar pela base"
+          />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onStartConnect(element.id, 'left');
+            }}
+            className="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3.5 h-3.5 bg-blue-500 rounded-full border border-white hover:scale-150 cursor-crosshair z-20 shadow-xs"
+            title="Conectar pela esquerda"
+          />
+        </>
+      )}
     </div>
   );
 };

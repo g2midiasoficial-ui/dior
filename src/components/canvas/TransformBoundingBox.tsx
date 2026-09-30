@@ -15,19 +15,20 @@ export const TransformBoundingBox: React.FC<TransformBoundingBoxProps> = ({
   zoom,
   onStartResize,
 }) => {
-  if (selectedElements.length === 0) return null;
+  const boxElements = selectedElements.filter((el) => el.type !== 'connector' && el.type !== 'draw');
+  if (boxElements.length === 0) return null;
 
   // Compute unified bounding box
-  const minX = Math.min(...selectedElements.map((el) => el.x));
-  const minY = Math.min(...selectedElements.map((el) => el.y));
-  const maxX = Math.max(...selectedElements.map((el) => el.x + el.width));
-  const maxY = Math.max(...selectedElements.map((el) => el.y + el.height));
+  const minX = Math.min(...boxElements.map((el) => el.x));
+  const minY = Math.min(...boxElements.map((el) => el.y));
+  const maxX = Math.max(...boxElements.map((el) => el.x + el.width));
+  const maxY = Math.max(...boxElements.map((el) => el.y + el.height));
 
   const width = Math.max(1, maxX - minX);
   const height = Math.max(1, maxY - minY);
 
-  const isSingle = selectedElements.length === 1;
-  const rotation = isSingle ? (selectedElements[0].rotation || 0) : 0;
+  const isSingle = boxElements.length === 1;
+  const rotation = isSingle ? (boxElements[0].rotation || 0) : 0;
 
   // Handle styles
   const handleSize = 10;

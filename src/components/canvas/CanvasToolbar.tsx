@@ -4,6 +4,7 @@ import {
   MousePointer,
   Hand,
   LayoutGrid,
+  Layout,
   Square,
   StickyNote,
   Type,
@@ -13,6 +14,8 @@ import {
   Smile,
   MessageSquare,
   Plus,
+  Check,
+  X,
   Undo2,
   Redo2,
   Circle,
@@ -58,6 +61,7 @@ import {
 import { ShapeType } from '../../types/miro';
 import { useTranslation } from '../../i18n/I18nContext';
 import { MiroModelType } from '../../utils/miroCreationTemplates';
+import { FunnelWireframesDrawer } from './FunnelWireframesDrawer';
 
 export type CanvasTool =
   | 'select'
@@ -93,6 +97,43 @@ interface CanvasToolbarProps {
   onAddStickerEmoji: (emoji: string) => void;
   onAddImage?: (url: string, title?: string) => void;
   onAddMindmapRootNode?: () => void;
+  connectorConfig?: {
+    connectorType: 'curved' | 'straight' | 'orthogonal';
+    color: string;
+    strokeWidth: number;
+    borderStyle: 'solid' | 'dashed' | 'dotted';
+    arrowEnd: 'arrow' | 'dot' | 'none';
+    arrowStart: 'arrow' | 'dot' | 'none';
+  };
+  onUpdateConnectorConfig?: (updates: Partial<{
+    connectorType: 'curved' | 'straight' | 'orthogonal';
+    color: string;
+    strokeWidth: number;
+    borderStyle: 'solid' | 'dashed' | 'dotted';
+    arrowEnd: 'arrow' | 'dot' | 'none';
+    arrowStart: 'arrow' | 'dot' | 'none';
+  }>) => void;
+  onAddConnector?: (
+    type: 'curved' | 'straight' | 'orthogonal',
+    color: string,
+    strokeWidth: number,
+    borderStyle: string,
+    arrowEnd: string,
+    arrowStart: string
+  ) => void;
+  onInsertFunnelPage?: (
+    funnelPageType: string,
+    title: string,
+    ctaText?: string,
+    customSvg?: string
+  ) => void;
+  onInsertTrafficSource?: (
+    trafficType: string,
+    title: string,
+    badge: string,
+    color: string
+  ) => void;
+  onInsertAction?: (actionType: string, title: string, metric?: string) => void;
 }
 
 export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
@@ -114,6 +155,12 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
   onAddStickerEmoji,
   onAddImage,
   onAddMindmapRootNode,
+  connectorConfig,
+  onUpdateConnectorConfig,
+  onAddConnector,
+  onInsertFunnelPage,
+  onInsertTrafficSource,
+  onInsertAction,
 }) => {
   const { t } = useTranslation();
   const [showStickyPalette, setShowStickyPalette] = useState(false);
@@ -122,8 +169,43 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
   const [showStickerPalette, setShowStickerPalette] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [showMiroModelsMenu, setShowMiroModelsMenu] = useState(false);
+  const [showFunnelDrawer, setShowFunnelDrawer] = useState(false);
+  const [showArrowPalette, setShowArrowPalette] = useState(false);
+  const [arrowType, setArrowType] = useState<'curved' | 'straight' | 'orthogonal'>('curved');
+  const [arrowColor, setArrowColor] = useState('#3b82f6');
+  const [arrowWidth, setArrowWidth] = useState(2.5);
+  const [arrowBorder, setArrowBorder] = useState<'solid' | 'dashed' | 'dotted'>('solid');
+  const [arrowEnd, setArrowEnd] = useState<'arrow' | 'dot' | 'none'>('arrow');
+  const [arrowStart, setArrowStart] = useState<'arrow' | 'dot' | 'none'>('none');
+  const [arrowCustomHex, setArrowCustomHex] = useState('');
   const [customImageUrl, setCustomImageUrl] = useState('');
   const [shapeTab, setShapeTab] = useState<'basic' | 'polygon' | 'arrows' | 'symbols'>('basic');
+
+  const activeArrowType = connectorConfig?.connectorType || arrowType;
+  const activeArrowColor = connectorConfig?.color || arrowColor;
+  const activeArrowWidth = connectorConfig?.strokeWidth || arrowWidth;
+  const activeArrowBorder = connectorConfig?.borderStyle || arrowBorder;
+  const activeArrowEnd = connectorConfig?.arrowEnd || arrowEnd;
+  const activeArrowStart = connectorConfig?.arrowStart || arrowStart;
+
+  const updateArrowSetting = (updates: Partial<{
+    connectorType: 'curved' | 'straight' | 'orthogonal';
+    color: string;
+    strokeWidth: number;
+    borderStyle: 'solid' | 'dashed' | 'dotted';
+    arrowEnd: 'arrow' | 'dot' | 'none';
+    arrowStart: 'arrow' | 'dot' | 'none';
+  }>) => {
+    if (updates.connectorType) setArrowType(updates.connectorType);
+    if (updates.color) setArrowColor(updates.color);
+    if (updates.strokeWidth) setArrowWidth(updates.strokeWidth);
+    if (updates.borderStyle) setArrowBorder(updates.borderStyle);
+    if (updates.arrowEnd !== undefined) setArrowEnd(updates.arrowEnd);
+    if (updates.arrowStart !== undefined) setArrowStart(updates.arrowStart);
+    if (onUpdateConnectorConfig) {
+      onUpdateConnectorConfig(updates);
+    }
+  };
 
   const stickyColors = [
     { name: 'Amarelo', bg: '#fef08a', border: '#eab308' },
@@ -514,18 +596,231 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
           <Network className="w-4 h-4 text-cyan-600" />
         </button>
 
-        {/* Line / Connector Tool (L) */}
-        <button
-          onClick={() => onSelectTool('connector')}
-          className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors group relative cursor-pointer ${
-            activeTool === 'connector'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-          }`}
-          title="Linha / Seta de Conexão (L)"
-        >
-          <ArrowUpRight className="w-4 h-4" />
-        </button>
+        {/* Line / Connector Tool (L) - Acima de T com opções completas de tipo, tamanho e cor */}
+        <div className="relative">
+          <button
+            onClick={() => {
+              onSelectTool('connector');
+              setShowArrowPalette(!showArrowPalette);
+              setShowStickyPalette(false);
+              setShowShapePalette(false);
+              setShowPenPalette(false);
+              setShowStickerPalette(false);
+              setShowImageDialog(false);
+              setShowMiroModelsMenu(false);
+              setShowFunnelDrawer(false);
+            }}
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors group relative cursor-pointer ${
+              activeTool === 'connector' || showArrowPalette
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+            title="Linha / Seta de Conexão (L) - Opções de Tipo, Tamanho e Cor"
+          >
+            <ArrowUpRight className="w-4 h-4" />
+          </button>
+
+          {/* Arrow Options Popover Drawer (Direto na ferramenta acima de T) */}
+          {showArrowPalette && (
+            <div className="absolute left-full top-0 ml-2 bg-white rounded-3xl shadow-2xl border border-slate-200/90 p-4 z-50 w-72 space-y-4 animate-in fade-in select-none text-slate-800">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900">
+                  <ArrowUpRight className="w-4 h-4 text-blue-600" />
+                  <span>Opções de Seta</span>
+                </div>
+                <button
+                  onClick={() => setShowArrowPalette(false)}
+                  className="text-slate-400 hover:text-slate-700 p-0.5 rounded-lg cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* 1. TIPO DE SETA (Curva, Reta, 90°) */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                  Tipo de Traçado
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  <button
+                    onClick={() => updateArrowSetting({ connectorType: 'curved' })}
+                    className={`py-2 px-1 rounded-xl text-xs font-semibold flex flex-col items-center gap-1 border transition-all cursor-pointer ${
+                      activeArrowType === 'curved'
+                        ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-2xs font-bold'
+                        : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className="text-base leading-none">╭╮</span>
+                    <span className="text-[10px]">Curva</span>
+                  </button>
+
+                  <button
+                    onClick={() => updateArrowSetting({ connectorType: 'straight' })}
+                    className={`py-2 px-1 rounded-xl text-xs font-semibold flex flex-col items-center gap-1 border transition-all cursor-pointer ${
+                      activeArrowType === 'straight'
+                        ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-2xs font-bold'
+                        : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className="text-base leading-none">──➔</span>
+                    <span className="text-[10px]">Reta</span>
+                  </button>
+
+                  <button
+                    onClick={() => updateArrowSetting({ connectorType: 'orthogonal' })}
+                    className={`py-2 px-1 rounded-xl text-xs font-semibold flex flex-col items-center gap-1 border transition-all cursor-pointer ${
+                      activeArrowType === 'orthogonal'
+                        ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-2xs font-bold'
+                        : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className="text-base leading-none">┌─➔</span>
+                    <span className="text-[10px]">90°</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. TAMANHO / ESPESSURA DA SETA */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Tamanho / Espessura
+                  </label>
+                  <span className="text-xs font-mono font-bold text-blue-600">{activeArrowWidth}px</span>
+                </div>
+                <div className="grid grid-cols-5 gap-1">
+                  {[1.5, 2.5, 4, 6, 9].map((w) => (
+                    <button
+                      key={w}
+                      onClick={() => updateArrowSetting({ strokeWidth: w })}
+                      className={`py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                        activeArrowWidth === w
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                          : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      {w}px
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. CORES DA SETA */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                  Cor da Seta
+                </label>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {[
+                    { name: 'Azul', hex: '#3b82f6' },
+                    { name: 'Verde', hex: '#22c55e' },
+                    { name: 'Vermelho', hex: '#ef4444' },
+                    { name: 'Roxo', hex: '#a855f7' },
+                    { name: 'Laranja', hex: '#f97316' },
+                    { name: 'Âmbar', hex: '#eab308' },
+                    { name: 'Ciano', hex: '#06b6d4' },
+                    { name: 'Rosa', hex: '#ec4899' },
+                    { name: 'Preto', hex: '#0f172a' },
+                    { name: 'Cinza', hex: '#64748b' },
+                  ].map((c) => (
+                    <button
+                      key={c.hex}
+                      onClick={() => updateArrowSetting({ color: c.hex })}
+                      className="w-8 h-8 rounded-xl border border-black/10 hover:scale-110 active:scale-95 transition-transform flex items-center justify-center cursor-pointer shadow-2xs"
+                      style={{ backgroundColor: c.hex }}
+                      title={c.name}
+                    >
+                      {activeArrowColor === c.hex && <Check className="w-4 h-4 text-white stroke-[3]" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 4. ESTILO DA LINHA & PONTA */}
+              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Traço
+                  </label>
+                  <div className="flex bg-slate-100 p-0.5 rounded-lg">
+                    {(['solid', 'dashed', 'dotted'] as const).map((st) => (
+                      <button
+                        key={st}
+                        onClick={() => updateArrowSetting({ borderStyle: st })}
+                        className={`flex-1 py-1 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                          activeArrowBorder === st ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600'
+                        }`}
+                      >
+                        {st === 'solid' ? '──' : st === 'dashed' ? '- -' : '··'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Ponta
+                  </label>
+                  <div className="flex bg-slate-100 p-0.5 rounded-lg">
+                    <button
+                      onClick={() => updateArrowSetting({ arrowStart: 'none', arrowEnd: 'arrow' })}
+                      className={`flex-1 py-1 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                        activeArrowEnd === 'arrow' && activeArrowStart === 'none' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600'
+                      }`}
+                      title="Seta Simples"
+                    >
+                      ➔
+                    </button>
+                    <button
+                      onClick={() => updateArrowSetting({ arrowStart: 'arrow', arrowEnd: 'arrow' })}
+                      className={`flex-1 py-1 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                        activeArrowEnd === 'arrow' && activeArrowStart === 'arrow' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600'
+                      }`}
+                      title="Seta Dupla"
+                    >
+                      ⇄
+                    </button>
+                    <button
+                      onClick={() => updateArrowSetting({ arrowStart: 'none', arrowEnd: 'dot' })}
+                      className={`flex-1 py-1 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                        activeArrowEnd === 'dot' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600'
+                      }`}
+                      title="Ponto"
+                    >
+                      ●
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botão de Inserir Seta Direto no Quadro */}
+              <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                <button
+                  onClick={() => {
+                    if (onAddConnector) {
+                      onAddConnector(
+                        activeArrowType,
+                        activeArrowColor,
+                        activeArrowWidth,
+                        activeArrowBorder,
+                        activeArrowEnd,
+                        activeArrowStart
+                      );
+                    }
+                    setShowArrowPalette(false);
+                  }}
+                  className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Inserir Seta no Quadro</span>
+                </button>
+                <p className="text-[10px] text-slate-500 text-center">
+                  Ou clique em 2 elementos no quadro para ligar com esta seta!
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Text Box Tool (T) */}
         <button
@@ -539,6 +834,53 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
         >
           <Type className="w-4 h-4" />
         </button>
+
+        {/* Páginas, Fontes & Ações de Funil (Wireframes / Funis - Abaixo de T) */}
+        <div className="relative">
+          <button
+            onClick={() => {
+              setShowFunnelDrawer(!showFunnelDrawer);
+              setShowStickyPalette(false);
+              setShowShapePalette(false);
+              setShowPenPalette(false);
+              setShowStickerPalette(false);
+              setShowImageDialog(false);
+              setShowMiroModelsMenu(false);
+            }}
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors group relative cursor-pointer ${
+              showFunnelDrawer
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+            title="Páginas, Fontes de Tráfego & Ações de Funil (Wireframes)"
+          >
+            <Layout className={`w-4 h-4 ${showFunnelDrawer ? 'text-white' : 'text-blue-600 group-hover:text-blue-700'}`} />
+          </button>
+
+          {/* Funnel Wireframes Popover Drawer */}
+          <FunnelWireframesDrawer
+            isOpen={showFunnelDrawer}
+            onClose={() => setShowFunnelDrawer(false)}
+            onInsertFunnelPage={(funnelType, title, ctaText, customSvg) => {
+              if (onInsertFunnelPage) {
+                onInsertFunnelPage(funnelType, title, ctaText, customSvg);
+              }
+              setShowFunnelDrawer(false);
+            }}
+            onInsertTrafficSource={(trafficType, title, badge, color) => {
+              if (onInsertTrafficSource) {
+                onInsertTrafficSource(trafficType, title, badge, color);
+              }
+              setShowFunnelDrawer(false);
+            }}
+            onInsertAction={(actionType, title, metric) => {
+              if (onInsertAction) {
+                onInsertAction(actionType, title, metric);
+              }
+              setShowFunnelDrawer(false);
+            }}
+          />
+        </div>
 
         {/* Pen / Highlighter Tool (P) */}
         <div className="relative">
