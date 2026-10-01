@@ -21,7 +21,6 @@ export const ImageElement: React.FC<ImageElementProps> = ({
   const [hasError, setHasError] = useState(false);
   const [copied, setCopied] = useState(false);
   const imageUrl = element.style.imageUrl || element.content;
-  const caption = element.content !== imageUrl ? element.content : '';
 
   const handleCopyImage = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -74,19 +73,14 @@ export const ImageElement: React.FC<ImageElementProps> = ({
           </span>
         </div>
       ) : (
-        <div className="relative w-full h-full flex flex-col bg-slate-100">
+        <div className="relative w-full h-full flex items-center justify-center bg-transparent overflow-hidden">
           <img
             src={imageUrl}
-            alt={caption || 'Diorfy asset'}
+            alt="Asset"
             onError={() => setHasError(true)}
-            className="w-full h-full object-cover select-none pointer-events-none"
+            className="w-full h-full object-contain select-none pointer-events-none"
             draggable={false}
           />
-          {caption && (
-            <div className="absolute bottom-0 inset-x-0 bg-black/65 backdrop-blur-xs text-white text-xs px-3 py-1.5 text-center font-medium truncate">
-              {caption}
-            </div>
-          )}
         </div>
       )}
 

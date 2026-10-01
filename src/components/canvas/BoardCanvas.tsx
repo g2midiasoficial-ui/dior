@@ -737,7 +737,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
-    // Global Paste Event Listener (supports pasting image files, URLs, elements, and text)
+    // Global Paste Event Listener (supports pasting image files, screenshots, HTML images, URLs, and elements)
     const handleGlobalPaste = (e: ClipboardEvent) => {
       const activeEl = document.activeElement;
       if (
@@ -770,7 +770,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
                   re.target.result as string,
                   world.x + i * 35,
                   world.y + i * 35,
-                  file.name || 'Imagem Colada'
+                  ''
                 );
               }
             };
@@ -796,7 +796,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
                     re.target.result as string,
                     world.x,
                     world.y,
-                    'Imagem Colada'
+                    ''
                   );
                 }
               };
@@ -807,7 +807,18 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
         }
       }
 
-      // 3. Text data in clipboard
+      // 3. HTML data in clipboard (e.g. copied image from web)
+      const htmlData = clipboardData.getData('text/html');
+      if (htmlData) {
+        const match = htmlData.match(/<img[^>]+src=["']([^"']+)["']/i);
+        if (match && match[1]) {
+          e.preventDefault();
+          createImageElementFromUrl(match[1], world.x, world.y, '');
+          return;
+        }
+      }
+
+      // 4. Text data in clipboard
       const pastedText = clipboardData.getData('text/plain')?.trim();
       if (pastedText) {
         // Is text an image URL or base64 data URI?
@@ -815,11 +826,13 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
           /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif|svg|avif|bmp)(\?.*)?$/i.test(pastedText) ||
           pastedText.startsWith('data:image/') ||
           pastedText.includes('images.unsplash.com') ||
-          pastedText.includes('googleusercontent.com');
+          pastedText.includes('googleusercontent.com') ||
+          pastedText.includes('cloudinary.com') ||
+          pastedText.includes('cdn.');
 
         if (isImgUrl) {
           e.preventDefault();
-          createImageElementFromUrl(pastedText, world.x, world.y, 'Imagem da Web');
+          createImageElementFromUrl(pastedText, world.x, world.y, '');
           return;
         }
 
@@ -1593,7 +1606,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
     url: string,
     worldX: number,
     worldY: number,
-    title: string = 'Imagem'
+    title: string = ''
   ) => {
     const img = new Image();
     img.onload = () => {
@@ -1621,7 +1634,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
         width: targetW,
         height: targetH,
         zIndex: elements.length + 5,
-        content: title,
+        content: '',
         style: {
           imageUrl: url,
           backgroundColor: '#ffffff',
@@ -1648,7 +1661,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
         width: 300,
         height: 220,
         zIndex: elements.length + 5,
-        content: title,
+        content: '',
         style: {
           imageUrl: url,
           backgroundColor: '#ffffff',
@@ -1670,7 +1683,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
 
   const handleAddImage = (url: string, title?: string) => {
     const world = screenToWorld(window.innerWidth / 2, window.innerHeight / 2);
-    createImageElementFromUrl(url, world.x, world.y, title || 'Imagem importada');
+    createImageElementFromUrl(url, world.x, world.y, '');
   };
 
   // Add Standalone Connector / Arrow with custom styles
@@ -2250,7 +2263,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
             const reader = new FileReader();
             reader.onload = (re) => {
               if (re.target?.result) {
-                createImageElementFromUrl(re.target.result as string, target.x, target.y, 'Imagem Colada');
+                createImageElementFromUrl(re.target.result as string, target.x, target.y, '');
               }
             };
             reader.readAsDataURL(blob);
@@ -2268,10 +2281,13 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
           const isImgUrl =
             /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif|svg|avif|bmp)(\?.*)?$/i.test(text) ||
             text.startsWith('data:image/') ||
-            text.includes('images.unsplash.com');
+            text.includes('images.unsplash.com') ||
+            text.includes('googleusercontent.com') ||
+            text.includes('cloudinary.com') ||
+            text.includes('cdn.');
 
           if (isImgUrl) {
-            createImageElementFromUrl(text, target.x, target.y, 'Imagem Web');
+            createImageElementFromUrl(text, target.x, target.y, '');
             return;
           }
 
@@ -2433,7 +2449,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
                 re.target.result as string,
                 world.x + i * 35,
                 world.y + i * 35,
-                file.name
+                ''
               );
             }
           };
@@ -2446,7 +2462,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
     // Dropped image URI from web browser
     const droppedUri = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain');
     if (droppedUri) {
-      createImageElementFromUrl(droppedUri.trim(), world.x, world.y, 'Imagem arrastada');
+      createImageElementFromUrl(droppedUri.trim(), world.x, world.y, '');
     }
   };
 
