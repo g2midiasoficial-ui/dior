@@ -1649,7 +1649,6 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
       });
       setSelectedElementIds([newImageEl.id]);
       playSound.pop();
-      showToast('Imagem colada com sucesso!', '🖼️');
     };
 
     img.onerror = () => {
@@ -1675,7 +1674,6 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
       });
       setSelectedElementIds([newImageEl.id]);
       playSound.pop();
-      showToast('Imagem inserida no quadro!', '🖼️');
     };
 
     img.src = url;
