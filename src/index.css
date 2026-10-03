@@ -3,6 +3,9 @@
 @layer base {
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #0f172a;
+    background-color: #ffffff;
+    overflow-x: hidden;
   }
 }
 
@@ -19,27 +22,79 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.12);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.22);
 }
 
-/* Canvas Grid Pattern */
+/* Subtle Canvas Grid Pattern */
 .canvas-grid-dots {
   background-size: 24px 24px;
-  background-image: radial-gradient(circle, #c7cdd8 1.2px, transparent 1.2px);
+  background-image: radial-gradient(circle, #cbd5e1 1.2px, transparent 1.2px);
 }
 
 .canvas-grid-lines {
   background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(200, 207, 218, 0.45) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(200, 207, 218, 0.45) 1px, transparent 1px);
+    linear-gradient(to right, rgba(226, 232, 240, 0.6) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(226, 232, 240, 0.6) 1px, transparent 1px);
 }
 
-/* Diorfy brand highlight */
-.diorfy-yellow, .miro-yellow {
-  background-color: #ffd02f;
+/* Glow and gradient highlights */
+.diorfy-gradient-text {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.diorfy-gradient-bg {
+  background: linear-gradient(135deg, #2563eb 0%, #6366f1 50%, #8b5cf6 100%);
+}
+
+.diorfy-gradient-soft {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(139, 92, 246, 0.08) 50%, rgba(6, 182, 212, 0.08) 100%);
+}
+
+/* Floating animation */
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes float-reverse {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 7s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
 }
