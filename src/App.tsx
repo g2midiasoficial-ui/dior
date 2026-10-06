@@ -8,6 +8,7 @@ import { AuthPage } from './components/auth/AuthPage';
 import { UpgradeModal } from './components/dashboard/UpgradeModal';
 import { loadBoards, getBoardById, updateBoard } from './utils/storage';
 import { getCurrentUser, logoutUser, updateUserPlan } from './utils/auth';
+import { saveBoardToDb, saveUserProfileToDb } from './services/firestoreService';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<'sales' | 'auth' | 'dashboard' | 'canvas'>('sales');
@@ -46,6 +47,7 @@ export default function App() {
   const handleUpdateCurrentBoard = (updatedBoard: BoardItem) => {
     setCurrentBoard(updatedBoard);
     updateBoard(updatedBoard.id, () => updatedBoard);
+    saveBoardToDb(updatedBoard, currentUser.id);
   };
 
   const handleEnterPlatformFromSales = () => {
@@ -59,6 +61,7 @@ export default function App() {
 
   const handleAuthSuccess = (user: UserProfile) => {
     setCurrentUser(user);
+    saveUserProfileToDb(user);
     setCurrentPage('dashboard');
   };
 
@@ -71,6 +74,7 @@ export default function App() {
   const handleUpgradePlan = (plan: UserPlan) => {
     const updated = updateUserPlan(plan);
     setCurrentUser(updated);
+    saveUserProfileToDb(updated);
   };
 
   // 1. Full Canvas Page

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BoardItem, BoardTemplate } from '../../types/miro';
 import { UserProfile, UserPlan } from '../../types/auth';
 import { Header } from './Header';
@@ -10,12 +10,18 @@ import { InviteModal } from './InviteModal';
 import { AIModal } from '../canvas/AIModal';
 import {
   loadBoards,
+  getBoardById,
   createNewBoard,
   duplicateBoard,
   deleteBoard,
   toggleStarBoard,
   updateBoard,
 } from '../../utils/storage';
+import { 
+  subscribeToUserBoards, 
+  saveBoardToDb, 
+  deleteBoardFromDb 
+} from '../../services/firestoreService';
 import confetti from 'canvas-confetti';
 
 interface DashboardProps {
@@ -44,13 +50,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Refresh boards from storage
+  // Live Firestore subscription for boards
+  useEffect(() => {
+    const unsub = subscribeToUserBoards(user?.id || '', (updatedBoards) => {
+      setBoards(updatedBoards);
+    });
+    return () => unsub();
+  }, [user?.id]);
+
+  // Refresh boards from storage and db
   const refreshBoards = () => {
     setBoards(loadBoards());
   };
 
   const handleCreateNewBlankBoard = () => {
     const newBoard = createNewBoard('Sem título');
+    saveBoardToDb(newBoard, user?.id);
     refreshBoards();
     onOpenBoard(newBoard.id);
   };
@@ -66,6 +81,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       template.frames,
       template.description
     );
+    saveBoardToDb(newBoard, user?.id);
     refreshBoards();
     try {
       confetti({ particleCount: 50, spread: 60 });
@@ -75,26 +91,40 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const handleToggleStar = (boardId: string) => {
     toggleStarBoard(boardId);
+    const updated = getBoardById(boardId);
+    if (updated) {
+      saveBoardToDb(updated, user?.id);
+    }
     refreshBoards();
   };
 
   const handleDuplicate = (boardId: string) => {
-    duplicateBoard(boardId);
+    const duplicated = duplicateBoard(boardId);
+    if (duplicated) {
+      saveBoardToDb(duplicated, user?.id);
+    }
     refreshBoards();
   };
 
   const handleDelete = (boardId: string) => {
     deleteBoard(boardId);
+    deleteBoardFromDb(boardId);
     refreshBoards();
   };
 
   const handleRename = (boardId: string, newTitle: string) => {
-    updateBoard(boardId, (b) => ({ ...b, title: newTitle }));
+    const updated = updateBoard(boardId, (b) => ({ ...b, title: newTitle }));
+    if (updated) {
+      saveBoardToDb(updated, user?.id);
+    }
     refreshBoards();
   };
 
   const handleToggleReadOnly = (boardId: string) => {
-    updateBoard(boardId, (b) => ({ ...b, isReadOnly: !b.isReadOnly }));
+    const updated = updateBoard(boardId, (b) => ({ ...b, isReadOnly: !b.isReadOnly }));
+    if (updated) {
+      saveBoardToDb(updated, user?.id);
+    }
     refreshBoards();
   };
 
@@ -102,7 +132,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const displayedBoards = boards.filter((b) => {
     if (currentView === 'favorites' && !b.isStarred) return false;
     if (currentView === 'recent') {
-      // Show recently opened
       return true;
     }
     if (searchQuery.trim()) {
@@ -145,13 +174,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         {/* Right Content Area */}
         <main className="flex-1 overflow-y-auto px-4 md:px-8 py-6 max-w-7xl mx-auto w-full">
-          {/* Top Carousel: Templates para Todas as funções */}
+          {/* Top Carousel: Templates */}
           <TemplateCarousel
             onSelectTemplate={handleSelectTemplate}
             onExploreMiroverse={() => setIsAIOpen(true)}
           />
 
-          {/* Boards neste time list / grid */}
+          {/* Boards grid */}
           <BoardGrid
             boards={displayedBoards}
             onOpenBoard={onOpenBoard}
@@ -181,6 +210,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         onClose={() => setIsAIOpen(false)}
         onApplyAIGenerated={(elements, frames, title) => {
           const newBoard = createNewBoard(title || 'Quadro Gerado com Diorfy AI', elements, frames);
+          saveBoardToDb(newBoard, user?.id);
           refreshBoards();
           onOpenBoard(newBoard.id);
         }}
