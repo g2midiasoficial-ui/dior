@@ -1,16 +1,48 @@
 @import "tailwindcss";
 
 @layer base {
+  *, ::before, ::after {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     color: #0f172a;
     background-color: #ffffff;
     overflow-x: hidden;
+    letter-spacing: -0.012em;
   }
+}
+
+/* Typography Font Families */
+.font-sans-modern {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  letter-spacing: -0.015em;
+}
+
+.font-sans-inter {
+  font-family: 'Inter', system-ui, sans-serif;
+  letter-spacing: -0.011em;
+}
+
+.font-sans-outfit {
+  font-family: 'Outfit', system-ui, sans-serif;
+  letter-spacing: -0.02em;
 }
 
 .font-handwriting {
   font-family: 'Caveat', cursive, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+.font-serif-elegant {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-mono-tech {
+  font-family: 'Fira Code', ui-monospace, monospace;
 }
 
 /* Custom scrollbar */
@@ -27,6 +59,13 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.22);
+}
+
+/* Canvas viewport crisp transform rendering */
+.canvas-viewport-crisp {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 /* Subtle Canvas Grid Pattern */

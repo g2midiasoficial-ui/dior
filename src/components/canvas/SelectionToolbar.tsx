@@ -21,6 +21,7 @@ import {
   Split,
   Palette,
   Film,
+  Sparkles,
 } from 'lucide-react';
 
 interface SelectionToolbarProps {
@@ -52,6 +53,7 @@ export const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
 }) => {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFontSizeMenu, setShowFontSizeMenu] = useState(false);
+  const [showFontFamilyMenu, setShowFontFamilyMenu] = useState(false);
   const [showSizePresets, setShowSizePresets] = useState(false);
   const [showAlignMenu, setShowAlignMenu] = useState(false);
   const [customHex, setCustomHex] = useState('');
@@ -87,7 +89,16 @@ export const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
     { bg: '#3b82f6', border: '#1d4ed8' },
   ];
 
-  const fontSizes = [12, 14, 16, 18, 24, 32, 48];
+  const fontFamilies = [
+    { name: 'Plus Jakarta Sans', label: 'Moderna Sans (Padrão)', css: "'Plus Jakarta Sans', sans-serif" },
+    { name: 'Inter', label: 'Inter UI Clean', css: "'Inter', sans-serif" },
+    { name: 'Outfit', label: 'Outfit Tech', css: "'Outfit', sans-serif" },
+    { name: 'Caveat', label: 'Manuscrita / Script', css: "'Caveat', cursive" },
+    { name: 'Playfair Display', label: 'Elegante Serif', css: "'Playfair Display', serif" },
+    { name: 'Fira Code', label: 'Mono Código', css: "'Fira Code', monospace" },
+  ];
+
+  const fontSizes = [12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 64];
 
   const sizePresets = [
     { label: 'Pequeno (S)', width: 140, height: 120 },
@@ -98,9 +109,8 @@ export const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
 
   const handleApplyCustomHex = (e: React.FormEvent) => {
     e.preventDefault();
-    if (customHex.trim()) {
-      const hex = customHex.startsWith('#') ? customHex : `#${customHex}`;
-      onUpdateStyle({ backgroundColor: hex });
+    if (/^#([0-9A-F]{3}){1,2}$/i.test(customHex)) {
+      onUpdateStyle({ backgroundColor: customHex });
       setShowColorPicker(false);
       setCustomHex('');
     }
@@ -108,44 +118,45 @@ export const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
 
   return (
     <div
-      onClick={(e) => e.stopPropagation()}
-      className="absolute z-50 flex items-center gap-1 bg-white rounded-2xl shadow-2xl border border-slate-200/90 p-1 select-none animate-in fade-in"
+      className="absolute z-40 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200/90 p-1.5 flex items-center gap-1 animate-in fade-in zoom-in-95 select-none"
       style={{
         left: `${centerX}px`,
         top: `${topY}px`,
-        transform: 'translateX(-50%)',
+        transform: 'translate(-50%, -100%)',
       }}
+      onClick={(e) => e.stopPropagation()}
     >
-      {/* Background Color Picker */}
+      {/* Color Picker Button & Popover */}
       <div className="relative">
         <button
           onClick={() => setShowColorPicker(!showColorPicker)}
-          className="p-1.5 rounded-xl hover:bg-slate-100 flex items-center gap-1 text-slate-700 text-xs cursor-pointer"
-          title="Cor de Fundo"
+          className="w-7 h-7 rounded-xl border border-slate-200 flex items-center justify-center shadow-2xs hover:scale-105 transition-transform cursor-pointer"
+          style={{ backgroundColor: firstEl.style.backgroundColor || '#ffffff' }}
+          title="Alterar Cor de Fundo"
         >
-          <div
-            className="w-4 h-4 rounded-full border border-slate-300 shadow-2xs"
-            style={{ backgroundColor: firstEl.style.backgroundColor || '#fef08a' }}
-          />
-          <ChevronDown className="w-3 h-3 text-slate-400" />
+          <Palette className="w-3.5 h-3.5 mix-blend-difference text-white" />
         </button>
 
         {showColorPicker && (
-          <div className="absolute left-0 bottom-full mb-2 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2.5 z-50 w-48">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
-              Paleta de Cores
+          <div className="absolute left-0 bottom-full mb-2 bg-white rounded-2xl shadow-xl border border-slate-200 p-3 z-50 w-52 space-y-2">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              Cores Predefinidas
             </span>
-            <div className="grid grid-cols-4 gap-1.5 mb-2.5">
-              {colors.map((c, i) => (
+            <div className="grid grid-cols-4 gap-1.5">
+              {colors.map((c, idx) => (
                 <button
-                  key={i}
+                  key={idx}
                   onClick={() => {
-                    onUpdateStyle({ backgroundColor: c.bg });
+                    onUpdateStyle({ backgroundColor: c.bg, borderColor: c.border });
                     setShowColorPicker(false);
                   }}
-                  className="w-7 h-7 rounded-lg border shadow-2xs hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  className="w-8 h-8 rounded-xl border shadow-2xs hover:scale-110 transition-transform cursor-pointer flex items-center justify-center"
                   style={{ backgroundColor: c.bg, borderColor: c.border }}
-                />
+                >
+                  {firstEl.style.backgroundColor === c.bg && (
+                    <Check className="w-3.5 h-3.5 text-slate-800" />
+                  )}
+                </button>
               ))}
             </div>
 
@@ -171,19 +182,64 @@ export const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
 
       <div className="h-4 w-px bg-slate-200" />
 
+      {/* Font Family Dropdown */}
+      <div className="relative">
+        <button
+          onClick={() => {
+            setShowFontFamilyMenu(!showFontFamilyMenu);
+            setShowFontSizeMenu(false);
+          }}
+          className="px-2 py-1 rounded-xl hover:bg-slate-100 text-xs font-bold text-slate-700 flex items-center gap-1 cursor-pointer"
+          title="Fonte & Tipografia de Alta Qualidade"
+        >
+          <Type className="w-3.5 h-3.5 text-blue-600" />
+          <span className="max-w-[75px] truncate text-[11px]">
+            {fontFamilies.find((f) => f.css === firstEl.style.fontFamily)?.name || 'Fonte'}
+          </span>
+          <ChevronDown className="w-3 h-3 text-slate-400" />
+        </button>
+
+        {showFontFamilyMenu && (
+          <div className="absolute left-0 bottom-full mb-2 bg-white rounded-2xl shadow-2xl border border-slate-200 py-1.5 z-50 w-52 space-y-0.5">
+            <span className="text-[10px] font-bold text-slate-400 px-3 py-1 uppercase tracking-wider block">
+              Tipografia de Alta Nitidez
+            </span>
+            {fontFamilies.map((font) => (
+              <button
+                key={font.name}
+                onClick={() => {
+                  onUpdateStyle({ fontFamily: font.css });
+                  setShowFontFamilyMenu(false);
+                }}
+                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 transition-colors flex items-center justify-between cursor-pointer ${
+                  firstEl.style.fontFamily === font.css ? 'bg-blue-50 text-blue-600 font-bold' : 'text-slate-800'
+                }`}
+                style={{ fontFamily: font.css }}
+              >
+                <span>{font.label}</span>
+                {firstEl.style.fontFamily === font.css && <Check className="w-3.5 h-3.5 text-blue-600" />}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Font Size Dropdown */}
       <div className="relative">
         <button
-          onClick={() => setShowFontSizeMenu(!showFontSizeMenu)}
+          onClick={() => {
+            setShowFontSizeMenu(!showFontSizeMenu);
+            setShowFontFamilyMenu(false);
+          }}
           className="px-2 py-1 rounded-xl hover:bg-slate-100 text-xs font-semibold text-slate-700 flex items-center gap-1 cursor-pointer"
           title="Tamanho do Texto"
         >
-          <span>{firstEl.style.fontSize || 14}px</span>
+          <span>{firstEl.style.fontSize || 16}px</span>
           <ChevronDown className="w-3 h-3 text-slate-400" />
         </button>
 
         {showFontSizeMenu && (
-          <div className="absolute left-0 bottom-full mb-2 bg-white rounded-2xl shadow-xl border border-slate-200 py-1 z-50 min-w-[70px]">
+          <div className="absolute left-0 bottom-full mb-2 bg-white rounded-2xl shadow-xl border border-slate-200 py-1 z-50 min-w-[70px] max-h-48 overflow-y-auto">
             {fontSizes.map((size) => (
               <button
                 key={size}
@@ -201,6 +257,20 @@ export const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
           </div>
         )}
       </div>
+
+      {/* Font Weight */}
+      <button
+        onClick={() => {
+          const nextWeight = firstEl.style.fontWeight === 'bold' ? 'normal' : 'bold';
+          onUpdateStyle({ fontWeight: nextWeight });
+        }}
+        className={`p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer ${
+          firstEl.style.fontWeight === 'bold' ? 'bg-blue-50 text-blue-600 font-black' : 'text-slate-600'
+        }`}
+        title="Negrito / Nitidez"
+      >
+        <Bold className="w-3.5 h-3.5" />
+      </button>
 
       {/* Quick Size Preset */}
       {onUpdateSize && (
@@ -239,20 +309,6 @@ export const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
         </div>
       )}
 
-      {/* Font Weight */}
-      <button
-        onClick={() => {
-          const nextWeight = firstEl.style.fontWeight === 'bold' ? 'normal' : 'bold';
-          onUpdateStyle({ fontWeight: nextWeight });
-        }}
-        className={`p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer ${
-          firstEl.style.fontWeight === 'bold' ? 'bg-slate-100 text-blue-600' : 'text-slate-600'
-        }`}
-        title="Negrito"
-      >
-        <Bold className="w-3.5 h-3.5" />
-      </button>
-
       {/* Alignment / Distribution Menu */}
       {onAlign && (
         <div className="relative">
@@ -273,21 +329,21 @@ export const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
               <div className="grid grid-cols-3 gap-1">
                 <button
                   onClick={() => { onAlign('left'); setShowAlignMenu(false); }}
-                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 text-xs flex justify-center"
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 text-xs flex justify-center cursor-pointer"
                   title="Alinhar à Esquerda"
                 >
                   <AlignLeft className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => { onAlign('center'); setShowAlignMenu(false); }}
-                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 text-xs flex justify-center"
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 text-xs flex justify-center cursor-pointer"
                   title="Alinhar ao Centro"
                 >
                   <AlignCenter className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => { onAlign('right'); setShowAlignMenu(false); }}
-                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 text-xs flex justify-center"
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 text-xs flex justify-center cursor-pointer"
                   title="Alinhar à Direita"
                 >
                   <AlignRight className="w-4 h-4" />
@@ -297,21 +353,21 @@ export const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
               <div className="grid grid-cols-3 gap-1 pt-1 border-t border-slate-100">
                 <button
                   onClick={() => { onAlign('top'); setShowAlignMenu(false); }}
-                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 text-xs flex justify-center"
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 text-xs flex justify-center cursor-pointer"
                   title="Alinhar ao Topo"
                 >
                   <ArrowUpToLine className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => { onAlign('middle'); setShowAlignMenu(false); }}
-                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 text-xs flex justify-center"
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 text-xs flex justify-center cursor-pointer"
                   title="Alinhar ao Meio"
                 >
                   <AlignJustify className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => { onAlign('bottom'); setShowAlignMenu(false); }}
-                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 text-xs flex justify-center"
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 text-xs flex justify-center cursor-pointer"
                   title="Alinhar à Base"
                 >
                   <ArrowDownToLine className="w-4 h-4" />
@@ -322,14 +378,14 @@ export const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
                 <div className="pt-1 border-t border-slate-100 space-y-1">
                   <button
                     onClick={() => { onAlign('distribute-h'); setShowAlignMenu(false); }}
-                    className="w-full text-left px-2 py-1 text-[11px] rounded hover:bg-slate-100 text-slate-700 flex items-center justify-between"
+                    className="w-full text-left px-2 py-1 text-[11px] rounded hover:bg-slate-100 text-slate-700 flex items-center justify-between cursor-pointer"
                   >
                     <span>Distribuir Horizontal</span>
                     <Split className="w-3 h-3 text-slate-400 rotate-90" />
                   </button>
                   <button
                     onClick={() => { onAlign('distribute-v'); setShowAlignMenu(false); }}
-                    className="w-full text-left px-2 py-1 text-[11px] rounded hover:bg-slate-100 text-slate-700 flex items-center justify-between"
+                    className="w-full text-left px-2 py-1 text-[11px] rounded hover:bg-slate-100 text-slate-700 flex items-center justify-between cursor-pointer"
                   >
                     <span>Distribuir Vertical</span>
                     <Split className="w-3 h-3 text-slate-400" />

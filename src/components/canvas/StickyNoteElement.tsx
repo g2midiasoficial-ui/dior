@@ -32,14 +32,16 @@ export const StickyNoteElement: React.FC<StickyNoteElementProps> = ({
   };
 
   const bgColor = element.style.backgroundColor || '#fef08a';
-  const textColor = element.style.color || '#1e293b';
+  const textColor = element.style.color || '#0f172a';
   const fontSize = element.style.fontSize || 14;
+  const fontFamily = element.style.fontFamily || "'Plus Jakarta Sans', system-ui, sans-serif";
+  const fontWeight = element.style.fontWeight === 'bold' ? 700 : element.style.fontWeight === 'medium' ? 600 : 500;
 
   return (
     <div
       onClick={onSelect}
       onDoubleClick={() => setIsEditing(true)}
-      className={`absolute select-none p-3.5 flex flex-col justify-between rounded-sm shadow-md transition-shadow cursor-move group ${
+      className={`absolute select-none p-4 flex flex-col justify-between rounded-xl shadow-md transition-shadow cursor-move group ${
         isSelected
           ? 'ring-2 ring-blue-600 shadow-xl'
           : 'hover:shadow-lg'
@@ -63,13 +65,25 @@ export const StickyNoteElement: React.FC<StickyNoteElementProps> = ({
             onChange={(e) => setContent(e.target.value)}
             onBlur={handleBlur}
             autoFocus
-            className="w-full h-full bg-transparent border-none outline-none resize-none font-sans font-medium"
-            style={{ fontSize: `${fontSize}px`, color: textColor }}
+            className="w-full h-full bg-transparent border-none outline-none resize-none leading-snug tracking-tight"
+            style={{ 
+              fontSize: `${fontSize}px`, 
+              color: textColor,
+              fontFamily: fontFamily,
+              fontWeight: fontWeight,
+              letterSpacing: '-0.012em',
+            }}
           />
         ) : (
           <p
-            className="whitespace-pre-wrap font-medium leading-snug break-words"
-            style={{ fontSize: `${fontSize}px` }}
+            className="whitespace-pre-wrap leading-snug break-words tracking-tight"
+            style={{ 
+              fontSize: `${fontSize}px`,
+              fontFamily: fontFamily,
+              fontWeight: fontWeight,
+              letterSpacing: '-0.012em',
+              textRendering: 'optimizeLegibility',
+            }}
           >
             {element.content || 'Clique 2x para escrever'}
           </p>
@@ -77,14 +91,14 @@ export const StickyNoteElement: React.FC<StickyNoteElementProps> = ({
       </div>
 
       {/* Footer: Tags, Author, Reactions, Votes */}
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-1 text-[11px] pt-1.5 border-t border-black/5">
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-1 text-[11px] pt-2 border-t border-black/8">
         {/* Author / Tag */}
-        <div className="flex items-center gap-1.5 opacity-80">
+        <div className="flex items-center gap-1.5 opacity-85">
           {element.style.author && (
-            <span className="font-semibold">{element.style.author}</span>
+            <span className="font-bold tracking-tight text-[10px]">{element.style.author}</span>
           )}
           {element.style.tags && element.style.tags.length > 0 && (
-            <span className="bg-black/10 px-1.5 py-0.5 rounded text-[10px] font-medium">
+            <span className="bg-black/10 px-1.5 py-0.5 rounded-md text-[10px] font-bold">
               {element.style.tags[0]}
             </span>
           )}
@@ -99,7 +113,7 @@ export const StickyNoteElement: React.FC<StickyNoteElementProps> = ({
                 e.stopPropagation();
                 onAddReaction(element.id, r.emoji);
               }}
-              className="bg-white/60 hover:bg-white px-1.5 py-0.5 rounded text-[10px] flex items-center gap-1 shadow-2xs font-semibold"
+              className="bg-white/70 hover:bg-white px-1.5 py-0.5 rounded-md text-[10px] flex items-center gap-1 shadow-2xs font-bold"
             >
               <span>{r.emoji}</span>
               <span>{r.count}</span>
@@ -113,7 +127,7 @@ export const StickyNoteElement: React.FC<StickyNoteElementProps> = ({
                 e.stopPropagation();
                 onVote(element.id);
               }}
-              className="bg-purple-600 text-white hover:bg-purple-700 px-1.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 shadow-2xs transition-transform active:scale-95"
+              className="bg-purple-600 text-white hover:bg-purple-700 px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 shadow-2xs transition-transform active:scale-95 cursor-pointer"
               title="Votar nesta nota"
             >
               <span>●</span>

@@ -27,10 +27,11 @@ export const ShapeElement: React.FC<ShapeElementProps> = ({
   const borderColor = element.style.borderColor || '#3b82f6';
   const borderWidth = element.style.borderWidth ?? 2;
   const borderStyle = element.style.borderStyle || 'solid';
-  const textColor = element.style.color || '#1e293b';
+  const textColor = element.style.color || '#0f172a';
   const fontSize = element.style.fontSize || 14;
   const textAlign = element.style.textAlign || 'center';
-  const fontWeight = element.style.fontWeight || 'normal';
+  const fontWeight = element.style.fontWeight === 'bold' ? 700 : element.style.fontWeight === 'medium' ? 600 : 500;
+  const fontFamily = element.style.fontFamily || "'Plus Jakarta Sans', system-ui, sans-serif";
 
   const handleBlur = () => {
     setIsEditing(false);
@@ -355,21 +356,26 @@ export const ShapeElement: React.FC<ShapeElementProps> = ({
             onChange={(e) => setContent(e.target.value)}
             onBlur={handleBlur}
             autoFocus
-            className="w-full h-full bg-transparent border-none outline-none resize-none text-center font-medium"
+            className="w-full h-full bg-transparent border-none outline-none resize-none leading-snug tracking-tight"
             style={{
               fontSize: `${fontSize}px`,
               color: textColor,
               textAlign: textAlign,
               fontWeight: fontWeight,
+              fontFamily: fontFamily,
+              letterSpacing: '-0.012em',
             }}
           />
         ) : (
           <p
-            className="whitespace-pre-wrap leading-tight break-words"
+            className="whitespace-pre-wrap leading-tight break-words tracking-tight"
             style={{
               fontSize: `${fontSize}px`,
               textAlign: textAlign,
               fontWeight: fontWeight,
+              fontFamily: fontFamily,
+              letterSpacing: '-0.012em',
+              textRendering: 'optimizeLegibility',
             }}
           >
             {element.content}

@@ -26,6 +26,7 @@ import { FunnelWireframeElement } from './FunnelWireframeElement';
 import { ShareModal } from './ShareModal';
 import { ShortcutsModal } from './ShortcutsModal';
 import { VideoCallStudio } from './VideoCallStudio';
+import { ExportModal } from './ExportModal';
 import {
   CustomShortcutMap,
   DEFAULT_SHORTCUTS,
@@ -3460,40 +3461,16 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
         onToggleCollabCursors={() => setShowCollabCursors(!showCollabCursors)}
       />
 
-      {/* Export Modal */}
-      {isExportModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in select-none">
-          <div className="bg-white rounded-3xl max-w-sm w-full shadow-2xl border border-slate-200 p-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Download className="w-4 h-4 text-blue-600" />
-                Exportar Quadro
-              </h3>
-              <button
-                onClick={() => setIsExportModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="py-4 space-y-2">
-              <button
-                onClick={handleExportJSON}
-                className="w-full p-3 rounded-2xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 flex items-center gap-3 transition-colors text-left cursor-pointer"
-              >
-                <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
-                  JSON
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-900">Salvar como Diorfy JSON</p>
-                  <p className="text-[11px] text-slate-500">Backup completo de elementos e posições</p>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 📄 PDF, PNG & High-Resolution Export Modal */}
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        board={board}
+        elements={elements}
+        frames={frames}
+        canvasRef={canvasRef}
+        onShowToast={showToast}
+      />
       {/* 📹 Diorfy In-App Live Video & Voice Call Studio */}
       <VideoCallStudio
         isOpen={isVideoCallOpen}

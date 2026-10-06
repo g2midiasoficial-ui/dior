@@ -502,6 +502,16 @@ export const CanvasTopNav: React.FC<CanvasTopNavProps> = ({
           <span className="hidden sm:inline">{t('canvas.topNav.present')}</span>
         </button>
 
+        {/* Export / Download PDF & Images Button */}
+        <button
+          onClick={onOpenExport}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer border border-slate-300 shadow-2xs"
+          title="Baixar Quadro em PDF, PNG ou JSON"
+        >
+          <Download className="w-3.5 h-3.5 text-blue-600" />
+          <span className="hidden sm:inline">Baixar PDF</span>
+        </button>
+
         {/* Share Button */}
         <button
           onClick={onOpenShare}
