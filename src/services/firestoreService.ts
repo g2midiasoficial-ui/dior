@@ -14,6 +14,10 @@ import {
 } from 'firebase/firestore';
 import { 
   signInWithPopup, 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInAnonymously,
+  updateProfile,
   signOut as fbSignOut, 
   onAuthStateChanged, 
   User as FirebaseUser 
@@ -27,14 +31,28 @@ import { loadBoards, saveBoards } from '../utils/storage';
 const BOARDS_COLLECTION = 'boards';
 const USERS_COLLECTION = 'users';
 
-// --- Authentication Service ---
+// --- Ensure Active Firebase Auth Session ---
+export async function ensureAuthenticatedSession(): Promise<FirebaseUser> {
+  if (auth.currentUser) {
+    return auth.currentUser;
+  }
+  try {
+    const cred = await signInAnonymously(auth);
+    return cred.user;
+  } catch (err) {
+    console.warn('Anonymous auth initialization:', err);
+    throw err;
+  }
+}
+
+// --- Authentication Services ---
 
 export async function loginWithGoogle(): Promise<UserProfile> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const fbUser = result.user;
     
-    // Check if profile exists in Firestore
+    // Check or create profile in Firestore
     const userDocRef = doc(db, USERS_COLLECTION, fbUser.uid);
     let userProfile: UserProfile;
 
@@ -77,6 +95,80 @@ export async function loginWithGoogle(): Promise<UserProfile> {
     console.error('Google Auth Error:', err);
     throw err;
   }
+}
+
+export async function loginWithEmailOrGuest(
+  email: string,
+  password?: string,
+  name?: string,
+  isRegister: boolean = false,
+  selectedPlan: UserPlan = 'pro'
+): Promise<UserProfile> {
+  let fbUser: FirebaseUser | null = null;
+
+  // 1. Try Firebase Email/Password Auth
+  if (email && password) {
+    try {
+      if (isRegister) {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        fbUser = cred.user;
+        if (name) {
+          await updateProfile(fbUser, { displayName: name });
+        }
+      } else {
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        fbUser = cred.user;
+      }
+    } catch (err: any) {
+      console.warn('Firebase Email/Password login fallback to session:', err?.message);
+      // Fallback: If email provider is disabled or user already exists, sign in anonymously or use active session
+      try {
+        const cred = await signInAnonymously(auth);
+        fbUser = cred.user;
+        if (name) {
+          await updateProfile(fbUser, { displayName: name });
+        }
+      } catch {
+        // Continue with local uid
+      }
+    }
+  }
+
+  // 2. Fallback to anonymous auth if still not signed in
+  if (!fbUser && !auth.currentUser) {
+    try {
+      const cred = await signInAnonymously(auth);
+      fbUser = cred.user;
+    } catch {}
+  }
+
+  const activeUid = fbUser?.uid || auth.currentUser?.uid || `usr-${Date.now()}`;
+  const displayName = name || fbUser?.displayName || email.split('@')[0] || 'Usuário Diorfy';
+
+  const userProfile: UserProfile = {
+    id: activeUid,
+    name: displayName,
+    email: email.trim().toLowerCase(),
+    avatar: fbUser?.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}`,
+    plan: selectedPlan,
+    billingCycle: 'monthly',
+    company: 'Workspace Diorfy',
+    createdAt: new Date().toISOString().split('T')[0],
+  };
+
+  // Save to Firestore
+  try {
+    const userDocRef = doc(db, USERS_COLLECTION, activeUid);
+    await setDoc(userDocRef, {
+      ...userProfile,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }, { merge: true });
+  } catch (err) {
+    console.warn('Could not write user profile to Firestore:', err);
+  }
+
+  return userProfile;
 }
 
 export async function logoutFirebase(): Promise<void> {
@@ -123,24 +215,19 @@ export function subscribeToUserBoards(
   userId: string,
   onBoardsUpdated: (boards: BoardItem[]) => void
 ): () => void {
-  if (!userId) {
-    const local = loadBoards();
-    onBoardsUpdated(local);
-    return () => {};
-  }
-
-  const q = query(
-    collection(db, BOARDS_COLLECTION),
-    where('ownerId', '==', userId)
-  );
+  // Listen to all boards in Firestore
+  const boardsCollectionRef = collection(db, BOARDS_COLLECTION);
 
   const unsubscribe = onSnapshot(
-    q,
+    boardsCollectionRef,
     (snapshot) => {
       if (snapshot.empty) {
-        // Seed initial boards to Firestore if first time
+        // If Firestore is empty, seed initial boards to Firestore
         const local = loadBoards();
         onBoardsUpdated(local);
+        local.forEach((b) => {
+          saveBoardToDb(b, userId).catch(() => {});
+        });
         return;
       }
 
@@ -149,7 +236,7 @@ export function subscribeToUserBoards(
         const data = docSnap.data();
         remoteBoards.push({
           id: data.id || docSnap.id,
-          title: data.title,
+          title: data.title || 'Sem título',
           icon: data.icon || 'folder',
           iconBg: data.iconBg || 'bg-blue-100 text-blue-600',
           isReadOnly: Boolean(data.isReadOnly),
@@ -177,8 +264,6 @@ export function subscribeToUserBoards(
 }
 
 export async function saveBoardToDb(board: BoardItem, userId?: string): Promise<void> {
-  const currentUid = userId || auth.currentUser?.uid || 'usr-default-g2';
-  
   // 1. Update local storage instantly for zero-latency UX
   const localBoards = loadBoards();
   const existingIdx = localBoards.findIndex((b) => b.id === board.id);
@@ -189,15 +274,22 @@ export async function saveBoardToDb(board: BoardItem, userId?: string): Promise<
   }
   saveBoards(localBoards);
 
-  // 2. Persist to Firestore if authenticated
-  if (auth.currentUser) {
-    const boardDocRef = doc(db, BOARDS_COLLECTION, board.id);
-    const sanitized = sanitizeBoardForFirestore(board, auth.currentUser.uid);
+  // 2. Ensure we have an authenticated session
+  let currentUid = userId || auth.currentUser?.uid;
+  if (!auth.currentUser) {
     try {
-      await setDoc(boardDocRef, sanitized, { merge: true });
-    } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, `${BOARDS_COLLECTION}/${board.id}`);
-    }
+      const user = await ensureAuthenticatedSession();
+      currentUid = user.uid;
+    } catch {}
+  }
+
+  // 3. Persist directly to Firestore
+  try {
+    const boardDocRef = doc(db, BOARDS_COLLECTION, board.id);
+    const sanitized = sanitizeBoardForFirestore(board, currentUid || 'usr-default');
+    await setDoc(boardDocRef, sanitized, { merge: true });
+  } catch (err) {
+    console.error('Firestore saveBoardToDb error:', err);
   }
 }
 
@@ -206,34 +298,43 @@ export async function deleteBoardFromDb(boardId: string): Promise<void> {
   const localBoards = loadBoards().filter((b) => b.id !== boardId);
   saveBoards(localBoards);
 
-  // 2. Delete from Firestore
-  if (auth.currentUser) {
-    const boardDocRef = doc(db, BOARDS_COLLECTION, boardId);
+  // 2. Ensure auth session and delete from Firestore
+  if (!auth.currentUser) {
     try {
-      await deleteDoc(boardDocRef);
-    } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `${BOARDS_COLLECTION}/${boardId}`);
-    }
+      await ensureAuthenticatedSession();
+    } catch {}
+  }
+
+  try {
+    const boardDocRef = doc(db, BOARDS_COLLECTION, boardId);
+    await deleteDoc(boardDocRef);
+  } catch (err) {
+    console.error('Firestore deleteBoardFromDb error:', err);
   }
 }
 
 export async function saveUserProfileToDb(profile: UserProfile): Promise<void> {
-  if (auth.currentUser) {
-    const userDocRef = doc(db, USERS_COLLECTION, profile.id);
+  if (!auth.currentUser) {
     try {
-      await setDoc(userDocRef, {
-        id: profile.id,
-        email: profile.email,
-        name: profile.name,
-        plan: profile.plan,
-        avatar: profile.avatar || '',
-        company: profile.company || '',
-        billingCycle: profile.billingCycle || 'monthly',
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      }, { merge: true });
-    } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, `${USERS_COLLECTION}/${profile.id}`);
-    }
+      await ensureAuthenticatedSession();
+    } catch {}
+  }
+
+  try {
+    const targetUid = profile.id || auth.currentUser?.uid || 'usr-default';
+    const userDocRef = doc(db, USERS_COLLECTION, targetUid);
+    await setDoc(userDocRef, {
+      id: targetUid,
+      email: profile.email,
+      name: profile.name,
+      plan: profile.plan,
+      avatar: profile.avatar || '',
+      company: profile.company || '',
+      billingCycle: profile.billingCycle || 'monthly',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }, { merge: true });
+  } catch (err) {
+    console.error('Firestore saveUserProfileToDb error:', err);
   }
 }

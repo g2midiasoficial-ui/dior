@@ -8,7 +8,7 @@ import { AuthPage } from './components/auth/AuthPage';
 import { UpgradeModal } from './components/dashboard/UpgradeModal';
 import { loadBoards, getBoardById, updateBoard } from './utils/storage';
 import { getCurrentUser, logoutUser, updateUserPlan } from './utils/auth';
-import { saveBoardToDb, saveUserProfileToDb } from './services/firestoreService';
+import { saveBoardToDb, saveUserProfileToDb, logoutFirebase } from './services/firestoreService';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<'sales' | 'auth' | 'dashboard' | 'canvas'>('sales');
@@ -66,6 +66,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    logoutFirebase();
     logoutUser();
     setCurrentUser(getCurrentUser());
     setCurrentPage('sales');
