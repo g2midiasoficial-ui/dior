@@ -107,8 +107,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       playSound.success();
       onEnterPlatform(user);
     } catch (err: any) {
-      console.error('Google login error:', err);
-      if (err?.code !== 'auth/popup-closed-by-user') {
+      if (
+        err?.code === 'auth/popup-closed-by-user' ||
+        err?.code === 'auth/cancelled-popup-request'
+      ) {
+        // User voluntarily closed the popup
+        return;
+      }
+      if (err?.code === 'auth/popup-blocked') {
+        setError('O navegador bloqueou o popup do Google. Permita popups ou use o formulário de e-mail.');
+      } else {
         setError('Não foi possível autenticar com o Google. Use o formulário de e-mail.');
       }
     } finally {

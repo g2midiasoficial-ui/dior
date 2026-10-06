@@ -91,8 +91,16 @@ export async function loginWithGoogle(): Promise<UserProfile> {
     }
 
     return userProfile;
-  } catch (err) {
-    console.error('Google Auth Error:', err);
+  } catch (err: any) {
+    // Graceful handling for popup closures and cancellations
+    if (
+      err?.code === 'auth/popup-closed-by-user' ||
+      err?.code === 'auth/cancelled-popup-request' ||
+      err?.code === 'auth/popup-blocked'
+    ) {
+      throw err;
+    }
+    console.warn('Google Auth note:', err?.message);
     throw err;
   }
 }
@@ -175,7 +183,7 @@ export async function logoutFirebase(): Promise<void> {
   try {
     await fbSignOut(auth);
   } catch (err) {
-    console.error('Logout error:', err);
+    console.warn('Logout note:', err);
   }
 }
 
@@ -289,7 +297,7 @@ export async function saveBoardToDb(board: BoardItem, userId?: string): Promise<
     const sanitized = sanitizeBoardForFirestore(board, currentUid || 'usr-default');
     await setDoc(boardDocRef, sanitized, { merge: true });
   } catch (err) {
-    console.error('Firestore saveBoardToDb error:', err);
+    console.warn('Firestore saveBoardToDb note:', err);
   }
 }
 
@@ -309,7 +317,7 @@ export async function deleteBoardFromDb(boardId: string): Promise<void> {
     const boardDocRef = doc(db, BOARDS_COLLECTION, boardId);
     await deleteDoc(boardDocRef);
   } catch (err) {
-    console.error('Firestore deleteBoardFromDb error:', err);
+    console.warn('Firestore deleteBoardFromDb note:', err);
   }
 }
 
@@ -335,6 +343,6 @@ export async function saveUserProfileToDb(profile: UserProfile): Promise<void> {
       updatedAt: Date.now(),
     }, { merge: true });
   } catch (err) {
-    console.error('Firestore saveUserProfileToDb error:', err);
+    console.warn('Firestore saveUserProfileToDb note:', err);
   }
 }

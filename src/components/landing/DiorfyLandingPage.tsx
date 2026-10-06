@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 
 interface DiorfyLandingPageProps {
-  onEnterPlatform: () => void;
+  onEnterPlatform: (user?: UserProfile) => void;
   onOpenBoard?: (boardId: string) => void;
 }
 
@@ -58,7 +58,7 @@ export const DiorfyLandingPage: React.FC<DiorfyLandingPageProps> = ({
 
   const handleAuthSuccess = (user: UserProfile) => {
     setIsAuthOpen(false);
-    onEnterPlatform();
+    onEnterPlatform(user);
   };
 
   const handleCheckoutSuccess = (plan: UserPlan) => {

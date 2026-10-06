@@ -114,9 +114,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       playSound.success();
       onSuccess(user);
     } catch (err: any) {
-      console.error('Google login error:', err);
-      // If popup was closed or failed, fallback gracefully
-      if (err?.code !== 'auth/popup-closed-by-user') {
+      if (
+        err?.code === 'auth/popup-closed-by-user' ||
+        err?.code === 'auth/cancelled-popup-request'
+      ) {
+        // User voluntarily closed the popup - no error needed
+        return;
+      }
+      if (err?.code === 'auth/popup-blocked') {
+        setError('O navegador bloqueou o popup do Google. Permita popups ou use o login por e-mail.');
+      } else {
         setError('Não foi possível conectar com o Google. Use o login por e-mail.');
       }
     } finally {

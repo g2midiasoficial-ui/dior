@@ -2,7 +2,7 @@ import React from 'react';
 import { DiorfyLandingPage } from '../landing/DiorfyLandingPage';
 
 interface SalesPageProps {
-  onEnterPlatform: () => void;
+  onEnterPlatform: (user?: UserProfile) => void;
   onOpenBoard?: (boardId: string) => void;
 }
 

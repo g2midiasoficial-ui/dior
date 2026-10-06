@@ -1,81 +1,44 @@
 import { UserProfile, UserPlan } from '../types/auth';
 
-const USER_SESSION_KEY = 'diorfy_user_session_v1';
+const USER_SESSION_KEY = 'diorfy_user_session_v2';
 
-export const DEFAULT_USER: UserProfile = {
-  id: 'usr-default-g2',
-  name: 'G2 Mídias',
-  email: 'g2midiasoficial@gmail.com',
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-  plan: 'pro',
-  billingCycle: 'monthly',
-  company: 'G2 Mídias Oficial',
-  createdAt: '2026-01-15',
-};
-
-export function getCurrentUser(): UserProfile {
+export function getCurrentUser(): UserProfile | null {
   try {
     const raw = localStorage.getItem(USER_SESSION_KEY);
-    if (!raw) {
-      localStorage.setItem(USER_SESSION_KEY, JSON.stringify(DEFAULT_USER));
-      return DEFAULT_USER;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.id && parsed.email) {
+      return parsed;
     }
-    return JSON.parse(raw);
+    return null;
   } catch (e) {
-    return DEFAULT_USER;
+    return null;
   }
 }
 
-export function saveCurrentUser(user: UserProfile): void {
+export function saveCurrentUser(user: UserProfile | null): void {
   try {
-    localStorage.setItem(USER_SESSION_KEY, JSON.stringify(user));
+    if (!user) {
+      localStorage.removeItem(USER_SESSION_KEY);
+    } else {
+      localStorage.setItem(USER_SESSION_KEY, JSON.stringify(user));
+    }
   } catch (e) {
     console.error('Failed to save user session', e);
   }
 }
 
-export function loginUser(email: string, name?: string): UserProfile {
-  const existing = getCurrentUser();
-  const updatedUser: UserProfile = {
-    ...existing,
-    id: `usr-${Date.now()}`,
-    name: name || email.split('@')[0] || 'Usuário Diorfy',
-    email: email.trim().toLowerCase(),
-    avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name || email)}`,
-  };
-  saveCurrentUser(updatedUser);
-  return updatedUser;
-}
-
-export function registerUser(name: string, email: string, plan: UserPlan = 'free'): UserProfile {
-  const newUser: UserProfile = {
-    id: `usr-${Date.now()}`,
-    name: name.trim(),
-    email: email.trim().toLowerCase(),
-    avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`,
-    plan,
-    billingCycle: 'monthly',
-    createdAt: new Date().toISOString().split('T')[0],
-  };
-  saveCurrentUser(newUser);
-  return newUser;
-}
-
 export function logoutUser(): void {
-  // Reset to guest/new user
-  const guestUser: UserProfile = {
-    id: `usr-guest-${Date.now()}`,
-    name: 'Visitante',
-    email: 'visitante@diorfy.com',
-    plan: 'free',
-    billingCycle: 'monthly',
-    createdAt: new Date().toISOString().split('T')[0],
-  };
-  saveCurrentUser(guestUser);
+  try {
+    localStorage.removeItem(USER_SESSION_KEY);
+  } catch (e) {
+    console.error('Failed to clear user session', e);
+  }
 }
 
-export function updateUserPlan(plan: UserPlan, billingCycle: 'monthly' | 'annual' = 'monthly'): UserProfile {
+export function updateUserPlan(plan: UserPlan, billingCycle: 'monthly' | 'annual' = 'monthly'): UserProfile | null {
   const current = getCurrentUser();
+  if (!current) return null;
   const updated: UserProfile = {
     ...current,
     plan,
