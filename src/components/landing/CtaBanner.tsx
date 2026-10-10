@@ -29,9 +29,9 @@ export const CtaBanner: React.FC<CtaBannerProps> = ({
             </div>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight">
-              Pronto para fazer suas ideias virarem{' '}
+              Seu próximo projeto pode começar{' '}
               <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent">
-                resultados extraordinários?
+                organizado de verdade.
               </span>
             </h2>
 
@@ -48,7 +48,7 @@ export const CtaBanner: React.FC<CtaBannerProps> = ({
                 }}
                 className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500 text-white font-bold text-base shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 group"
               >
-                <span>Criar Conta Gratuita</span>
+                <span>Criar meu quadro grátis</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
 
@@ -60,7 +60,7 @@ export const CtaBanner: React.FC<CtaBannerProps> = ({
                 className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-slate-900/90 border border-slate-700 text-slate-200 font-bold text-base hover:bg-slate-800 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2.5"
               >
                 <Play className="w-4 h-4 fill-slate-300" />
-                <span>Ver Demonstração</span>
+                <span>Ver como funciona</span>
               </button>
             </div>
 

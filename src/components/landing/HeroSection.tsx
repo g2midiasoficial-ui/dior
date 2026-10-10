@@ -171,19 +171,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 border border-blue-200/80 shadow-xs backdrop-blur-md animate-float-slow">
             <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping" />
             <span className="text-[11px] font-bold tracking-wider uppercase bg-gradient-to-r from-blue-700 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              PLANEJAMENTO INTELIGENTE
+              Ideia → Plano → Entrega
             </span>
             <div className="w-px h-3 bg-slate-200" />
             <span className="text-[11px] font-medium text-slate-500 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-amber-500" /> Novo Diorfy v4
+              <Sparkles className="w-3 h-3 text-amber-500" /> Com IA integrada
             </span>
           </div>
 
           {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.12]">
-            A plataforma de planejamento que faz suas ideias{' '}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.12] text-balance">
+            Pare de planejar em 5 ferramentas.{' '}
             <span className="diorfy-gradient-text relative inline-block">
-              virarem resultados.
+              Comece a entregar.
               <svg className="absolute -bottom-2 left-0 w-full h-3 text-cyan-400/60" viewBox="0 0 100 12" preserveAspectRatio="none">
                 <path d="M0,8 Q50,0 100,8" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
               </svg>
@@ -192,7 +192,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
           {/* Subtitle */}
           <p className="text-lg sm:text-xl text-slate-600 font-normal leading-relaxed max-w-2xl mx-auto">
-            Diorfy unifica brainstorming infinito, fluxogramas de processos, mapas mentais e gestão visual de sprints em um espaço de trabalho ultra-rápido, fluido e minimalista.
+            Brainstorming, funis, mapas mentais e Kanban no <strong className="font-semibold text-slate-800">mesmo quadro</strong>. Sua equipe sai da ideia para a tarefa com 1 clique, sem copiar e colar entre apps e sem reunião para "alinhar onde está cada coisa".
           </p>
 
           {/* CTAs */}
@@ -204,7 +204,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               }}
               className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white font-semibold text-base shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-600/35 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 group"
             >
-              <span>Comece gratuitamente</span>
+              <span>Criar meu quadro grátis</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
 
@@ -218,7 +218,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Play className="w-3 h-3 fill-blue-600 ml-0.5" />
               </div>
-              <span>Ver demonstração interativa</span>
+              <span>Ver como funciona</span>
             </button>
           </div>
 
@@ -230,11 +230,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-              <span>Configuração em 2 minutos</span>
+              <span>Pronto para usar em 2 minutos</span>
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-              <span>Colaboração ao vivo ilimitada</span>
+              <span>Plano grátis para sempre</span>
             </div>
           </div>
         </div>

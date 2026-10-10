@@ -94,12 +94,12 @@ export const FlowchartSection: React.FC = () => {
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
-            Do brainstorming à execução,{' '}
-            <span className="diorfy-gradient-text">tudo em um só lugar.</span>
+            A ideia não se perde{' '}
+            <span className="diorfy-gradient-text">no caminho até a entrega.</span>
           </h2>
 
           <p className="text-base sm:text-lg text-slate-600 font-normal leading-relaxed">
-            Elimine ferramentas desconectadas. No Diorfy, o fluxo de raciocínio da sua equipe se conecta do primeiro rascunho até a entrega no quadro Kanban.
+            O rascunho, o funil e a tarefa vivem conectados. Quando o plano muda, todo mundo vê na hora, do primeiro post-it até o card no Kanban.
           </p>
         </div>
 

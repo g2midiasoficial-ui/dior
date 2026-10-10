@@ -118,12 +118,12 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
-            Transparência total.{' '}
-            <span className="diorfy-gradient-text">Escale sem surpresas.</span>
+            Comece grátis.{' '}
+            <span className="diorfy-gradient-text">Pague só quando crescer.</span>
           </h2>
 
           <p className="text-base sm:text-lg text-slate-600 font-normal leading-relaxed">
-            Comece gratuitamente e evolua conforme sua equipe cresce. Cancele ou altere seu plano quando quiser com 1 clique.
+            Sem contrato e sem fidelidade. Troque de plano ou cancele quando quiser, com 1 clique.
           </p>
 
           {/* Billing Cycle Toggle (Monthly vs Annual with 20% discount) */}
@@ -166,7 +166,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                 key={plan.id}
                 className={`rounded-3xl p-8 transition-all duration-300 flex flex-col justify-between relative ${
                   plan.popular
-                    ? 'bg-white border-2 border-blue-600 shadow-2xl shadow-blue-500/10 scale-100 lg:scale-105 z-10'
+                    ? 'order-first lg:order-none bg-white border-2 border-blue-600 shadow-2xl shadow-blue-500/10 scale-100 lg:scale-105 z-10'
                     : 'bg-white/90 border border-slate-200/90 shadow-lg hover:shadow-xl hover:border-slate-300'
                 }`}
               >

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserProfile, UserPlan } from '../../types/auth';
 import { Navbar } from './Navbar';
 import { HeroSection } from './HeroSection';
 import { SocialProofLogos } from './SocialProofLogos';
+import { PainSolutionSection } from './PainSolutionSection';
 import { FlowchartSection } from './FlowchartSection';
 import { FeaturesGridSection } from './FeaturesGridSection';
 import { PricingSection } from './PricingSection';
@@ -39,6 +40,18 @@ export const DiorfyLandingPage: React.FC<DiorfyLandingPageProps> = ({
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState<UserPlan>('pro');
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const [showStickyCta, setShowStickyCta] = useState(false);
+
+  // Mobile sticky CTA: visible after the hero, hidden again near the footer
+  useEffect(() => {
+    const onScroll = () => {
+      const nearBottom = window.innerHeight + window.scrollY > document.documentElement.scrollHeight - 500;
+      setShowStickyCta(window.scrollY > 700 && !nearBottom);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   // Handlers
   const handleOpenLogin = () => {
@@ -84,6 +97,9 @@ export const DiorfyLandingPage: React.FC<DiorfyLandingPageProps> = ({
       {/* 3. Social Proof & Trust Metrics */}
       <SocialProofLogos />
 
+      {/* 3b. Pain vs. Solution (before / after) */}
+      <PainSolutionSection onOpenRegister={handleOpenRegister} />
+
       {/* 4. From Brainstorming to Execution (Interactive Flowchart) */}
       <FlowchartSection />
 
@@ -107,6 +123,26 @@ export const DiorfyLandingPage: React.FC<DiorfyLandingPageProps> = ({
 
       {/* 9. Polished Footer */}
       <Footer />
+
+      {/* Mobile sticky CTA */}
+      <div
+        className={`md:hidden fixed inset-x-0 bottom-0 z-40 px-4 pb-4 pt-3 bg-gradient-to-t from-white via-white/95 to-white/0 transition-all duration-300 ${
+          showStickyCta && !isAuthOpen && !isCheckoutOpen && !isDemoModalOpen
+            ? 'translate-y-0 opacity-100'
+            : 'translate-y-full opacity-0 pointer-events-none'
+        }`}
+      >
+        <button
+          onClick={() => {
+            playSound.pop();
+            handleOpenRegister();
+          }}
+          className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white font-bold text-base shadow-xl shadow-blue-600/30 active:scale-[0.98] transition-transform cursor-pointer flex items-center justify-center gap-2"
+        >
+          <span>Criar meu quadro grátis</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
+      </div>
 
       {/* AUTH MODAL */}
       <AuthModal

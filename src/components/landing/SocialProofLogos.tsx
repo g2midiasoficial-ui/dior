@@ -23,14 +23,14 @@ export const SocialProofLogos: React.FC = () => {
         </div>
 
         {/* Company Logos Grid / Strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6 items-center justify-items-center opacity-70 grayscale hover:grayscale-0 transition-all duration-300">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4 items-center justify-items-center opacity-70 grayscale hover:grayscale-0 transition-all duration-300">
           {companies.map((comp) => (
             <div
               key={comp.name}
               className="flex items-center justify-center p-2 text-slate-500 hover:text-blue-600 transition-colors cursor-default group"
               title={comp.name}
             >
-              <span className="text-xs sm:text-sm font-black tracking-widest font-mono group-hover:scale-105 transition-transform">
+              <span className="text-xs sm:text-sm font-black tracking-widest font-mono whitespace-nowrap group-hover:scale-105 transition-transform">
                 {comp.symbol}
               </span>
             </div>

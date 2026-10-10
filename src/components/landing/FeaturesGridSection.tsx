@@ -109,12 +109,12 @@ export const FeaturesGridSection: React.FC = () => {
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
-            Criado para transformar complexidade em{' '}
-            <span className="diorfy-gradient-text">clareza absoluta.</span>
+            Tudo o que sua equipe precisa.{' '}
+            <span className="diorfy-gradient-text">Nada que atrapalhe.</span>
           </h2>
 
           <p className="text-base sm:text-lg text-slate-600 font-normal leading-relaxed">
-            Cada detalhe do Diorfy foi projetado para diminuir o tempo entre ter uma grande ideia e executá-la com perfeição.
+            Menos tempo organizando ferramentas, mais tempo executando. Cada recurso existe para encurtar o caminho entre a ideia e o resultado.
           </p>
         </div>
 
