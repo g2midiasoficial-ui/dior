@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sparkles, ArrowRight, Play, CheckCircle2, Zap } from 'lucide-react';
 import { playSound } from '../../utils/soundEffects';
+import KineticGrid from '../ui/kinetic-grid';
 
 interface CtaBannerProps {
   onOpenRegister: () => void;
@@ -15,10 +16,11 @@ export const CtaBanner: React.FC<CtaBannerProps> = ({
     <section className="py-16 md:py-24 bg-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Banner Box with Signature Diorfy Gradient Glow */}
-        <div className="relative rounded-[32px] bg-slate-950 text-white p-8 sm:p-14 lg:p-16 overflow-hidden shadow-2xl border border-slate-800">
-          {/* Internal Gradient Light Shapes */}
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-blue-600/30 via-indigo-600/20 to-purple-600/30 blur-[90px] rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-cyan-500/20 blur-[90px] rounded-full pointer-events-none" />
+        {/* Interactive kinetic grid background: warps toward the cursor, ripples on click */}
+        <KineticGrid
+          globalColor="brand"
+          className="rounded-[32px] text-white p-8 sm:p-14 lg:p-16 shadow-2xl border border-slate-800"
+        >
 
           <div className="relative z-10 max-w-3xl mx-auto text-center space-y-6">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-700/80 shadow-xs">
@@ -80,7 +82,7 @@ export const CtaBanner: React.FC<CtaBannerProps> = ({
               </div>
             </div>
           </div>
-        </div>
+        </KineticGrid>
       </div>
     </section>
   );
