@@ -18,6 +18,8 @@ import {
   Sparkle
 } from 'lucide-react';
 import { playSound } from '../../utils/soundEffects';
+import { LayoutGroup, motion } from 'motion/react';
+import { TextRotate } from '../ui/text-rotate';
 
 interface HeroSectionProps {
   onOpenRegister: () => void;
@@ -181,13 +183,26 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
           {/* Headline */}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.12] text-balance">
-            Pare de planejar em 5 ferramentas.{' '}
-            <span className="diorfy-gradient-text relative inline-block">
-              Comece a entregar.
-              <svg className="absolute -bottom-2 left-0 w-full h-3 text-cyan-400/60" viewBox="0 0 100 12" preserveAspectRatio="none">
-                <path d="M0,8 Q50,0 100,8" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-              </svg>
-            </span>
+            Pare de planejar em 5 ferramentas.
+            <LayoutGroup>
+              <motion.span layout className="mt-2 sm:mt-3 flex flex-col sm:flex-row items-center justify-center gap-x-3 gap-y-2">
+                <motion.span layout transition={{ type: 'spring', damping: 30, stiffness: 400 }}>
+                  Comece a
+                </motion.span>
+                <TextRotate
+                  texts={['entregar.', 'vender mais.', 'lançar rápido.', 'crescer.']}
+                  mainClassName="px-3 sm:px-4 py-1 sm:py-1.5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white overflow-hidden justify-center shadow-lg shadow-indigo-500/25"
+                  staggerFrom="last"
+                  initial={{ y: '100%' }}
+                  animate={{ y: 0 }}
+                  exit={{ y: '-120%' }}
+                  staggerDuration={0.025}
+                  splitLevelClassName="overflow-hidden pb-1"
+                  transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+                  rotationInterval={2200}
+                />
+              </motion.span>
+            </LayoutGroup>
           </h1>
 
           {/* Subtitle */}
