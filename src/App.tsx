@@ -11,9 +11,9 @@ import { getCurrentUser, saveCurrentUser, logoutUser, updateUserPlan } from './u
 import { 
   saveBoardToDb, 
   saveUserProfileToDb, 
-  logoutFirebase, 
+  signOutUser, 
   subscribeToAuthChanges 
-} from './services/firestoreService';
+} from './services/dbService';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<'sales' | 'auth' | 'dashboard' | 'canvas'>('sales');
@@ -23,14 +23,14 @@ export default function App() {
   const [currentBoard, setCurrentBoard] = useState<BoardItem | null>(null);
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
 
-  // Listen to Firebase Auth state in real-time
+  // Listen to Supabase Auth state in real-time
   useEffect(() => {
-    const unsub = subscribeToAuthChanges((user) => {
+    const unsub = subscribeToAuthChanges((user, event) => {
       setCurrentUser(user);
-      if (user) {
-        saveCurrentUser(user);
-      } else {
-        saveCurrentUser(null);
+      saveCurrentUser(user);
+      // e.g. returning from the Google OAuth redirect
+      if (user && event === 'SIGNED_IN') {
+        setCurrentPage((page) => (page === 'sales' || page === 'auth' ? 'dashboard' : page));
       }
     });
     return () => unsub();
@@ -99,7 +99,7 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    await logoutFirebase();
+    await signOutUser();
     logoutUser();
     setCurrentUser(null);
     setCurrentBoardId(null);

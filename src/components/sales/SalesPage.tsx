@@ -1,5 +1,6 @@
 import React from 'react';
 import { DiorfyLandingPage } from '../landing/DiorfyLandingPage';
+import { UserProfile } from '../../types/auth';
 
 interface SalesPageProps {
   onEnterPlatform: (user?: UserProfile) => void;

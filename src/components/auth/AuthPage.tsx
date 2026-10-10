@@ -15,7 +15,7 @@ import {
 import confetti from 'canvas-confetti';
 import { UserProfile, UserPlan } from '../../types/auth';
 import { saveCurrentUser } from '../../utils/auth';
-import { loginWithGoogle, loginWithEmailOrGuest } from '../../services/firestoreService';
+import { loginWithGoogle, loginWithEmailOrGuest } from '../../services/dbService';
 import { playSound } from '../../utils/soundEffects';
 
 interface AuthPageProps {

@@ -21,7 +21,7 @@ import {
   subscribeToUserBoards, 
   saveBoardToDb, 
   deleteBoardFromDb 
-} from '../../services/firestoreService';
+} from '../../services/dbService';
 import confetti from 'canvas-confetti';
 
 interface DashboardProps {
