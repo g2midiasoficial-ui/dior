@@ -1,4 +1,5 @@
 import React from 'react';
+import { DiorfyLogo } from '../brand/DiorfyLogo';
 import { Sparkles, Globe, Shield, Heart, ArrowUp } from 'lucide-react';
 import { playSound } from '../../utils/soundEffects';
 
@@ -16,17 +17,9 @@ export const Footer: React.FC = () => {
           <div className="col-span-2 space-y-4">
             <div 
               onClick={scrollToTop}
-              className="flex items-center gap-2.5 cursor-pointer select-none"
+              className="flex items-center cursor-pointer select-none"
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-500 p-0.5 shadow-md shadow-blue-500/20">
-                <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-cyan-400" />
-                </div>
-              </div>
-              <span className="text-xl font-black tracking-tight text-white flex items-center gap-1">
-                Diorfy
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-              </span>
+              <DiorfyLogo tone="light" markClassName="h-8 w-auto" textClassName="text-2xl" />
             </div>
 
             <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-sm">

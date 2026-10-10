@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { DiorfyMark } from '../brand/DiorfyLogo';
 import {
   X,
   Mail,
@@ -137,11 +138,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Modal Header */}
         <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 p-0.5 shadow-md shadow-blue-500/20">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
-              </div>
-            </div>
+            <DiorfyMark className="h-8 w-auto shrink-0" />
             <div>
               <h2 className="text-base font-bold text-slate-900">
                 {mode === 'login' ? 'Entrar no Diorfy' : 'Criar Conta Gratuita'}

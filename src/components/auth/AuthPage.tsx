@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { DiorfyLogo } from '../brand/DiorfyLogo';
 import {
   Mail,
   Lock,
@@ -139,13 +140,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         {/* Logo */}
-        <div className="inline-flex items-center justify-center gap-2 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 p-0.5 shadow-md">
-            <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-cyan-400" />
-            </div>
-          </div>
-          <span className="text-2xl font-black tracking-tight text-slate-900">Diorfy</span>
+        <div className="inline-flex items-center justify-center mb-4">
+          <DiorfyLogo markClassName="h-10 w-auto" textClassName="text-3xl" />
         </div>
 
         <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { DiorfyLogo } from '../brand/DiorfyLogo';
 import { 
   Sparkles, 
   Menu, 
@@ -64,22 +65,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               playSound.click();
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="flex items-center gap-2.5 cursor-pointer group select-none"
+            className="flex items-center cursor-pointer group select-none"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-500 p-0.5 shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-cyan-400 group-hover:rotate-12 transition-transform" />
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-1">
-                Diorfy
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-              </span>
-              <span className="text-[10px] font-semibold tracking-wider uppercase text-slate-400 -mt-1">
-                Planning SaaS
-              </span>
-            </div>
+            <DiorfyLogo
+              markClassName="h-8 w-auto group-hover:scale-105 transition-transform"
+              textClassName="text-2xl"
+            />
           </div>
 
           {/* Desktop Navigation Links */}

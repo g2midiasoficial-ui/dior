@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { DiorfyLogo } from '../brand/DiorfyLogo';
 import {
   Gift,
   Bell,
@@ -104,14 +105,7 @@ export const Header: React.FC<HeaderProps> = ({
           className="flex items-center gap-2 cursor-pointer group"
           title={t('sales.pricingTitle')}
         >
-          <div className="flex items-center tracking-tight">
-            <span className="font-black text-2xl tracking-tighter text-[#1e1b4b] font-sans flex items-center gap-1.5">
-              <span className="w-6 h-6 rounded-lg bg-gradient-to-tr from-blue-600 via-indigo-600 to-amber-400 flex items-center justify-center text-white text-xs font-black shadow-xs">
-                D
-              </span>
-              Diorfy
-            </span>
-          </div>
+          <DiorfyLogo markClassName="h-7 w-auto" textClassName="text-xl" />
         </div>
 
         {/* Plan Dropdown Button */}
