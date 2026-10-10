@@ -17,11 +17,11 @@ create table if not exists public.profiles (
 alter table public.profiles enable row level security;
 
 create policy "profiles: ler o próprio" on public.profiles
-  for select using (auth.uid() = id);
+  for select using ((select auth.uid()) = id);
 create policy "profiles: criar o próprio" on public.profiles
-  for insert with check (auth.uid() = id);
+  for insert with check ((select auth.uid()) = id);
 create policy "profiles: editar o próprio" on public.profiles
-  for update using (auth.uid() = id) with check (auth.uid() = id);
+  for update using ((select auth.uid()) = id) with check ((select auth.uid()) = id);
 
 -- ---------- Quadros ----------
 -- O quadro inteiro (elementos, frames, comentários, viewState...) fica em `data` (jsonb).
@@ -41,13 +41,13 @@ create index if not exists boards_owner_updated_idx on public.boards (owner_id, 
 alter table public.boards enable row level security;
 
 create policy "boards: ler os próprios" on public.boards
-  for select using (auth.uid() = owner_id);
+  for select using ((select auth.uid()) = owner_id);
 create policy "boards: criar os próprios" on public.boards
-  for insert with check (auth.uid() = owner_id);
+  for insert with check ((select auth.uid()) = owner_id);
 create policy "boards: editar os próprios" on public.boards
-  for update using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+  for update using ((select auth.uid()) = owner_id) with check ((select auth.uid()) = owner_id);
 create policy "boards: apagar os próprios" on public.boards
-  for delete using (auth.uid() = owner_id);
+  for delete using ((select auth.uid()) = owner_id);
 
 -- Atualizações em tempo real no dashboard
 alter publication supabase_realtime add table public.boards;
