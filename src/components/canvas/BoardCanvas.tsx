@@ -14,7 +14,8 @@ import { TransformBoundingBox, ResizeHandleType } from './TransformBoundingBox';
 import { ZoomControlsMenu } from './ZoomControlsMenu';
 import { NanoBananaStudio } from './NanoBananaStudio';
 import { AiAgentPanel } from './AiAgentPanel';
-import { SlideMotionStudio } from './SlideMotionStudio';
+import { SlideMotionStudio, SavedSlide } from './SlideMotionStudio';
+import { useBoardPresence } from '../../hooks/useBoardPresence';
 import { MindmapStudio } from './MindmapStudio';
 import { CommandPalette } from './CommandPalette';
 import { Minimap } from './Minimap';
@@ -215,14 +216,17 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
 
-  // Simulated Collaborator Cursors
+  // Real presence (Supabase Realtime): who else has this board open + their cursors
   const [showCollabCursors, setShowCollabCursors] = useState(true);
-  const [collabCursors, setCollabCursors] = useState([
-    { id: 'mariana', name: 'Mariana Silva', color: '#3b82f6', x: 580, y: 340 },
-    { id: 'carlos', name: 'Carlos Mendes', color: '#10b981', x: 890, y: 460 },
-  ]);
+  const { others: presenceOthers, cursors: presenceCursors, sendCursor, self: presenceSelf } = useBoardPresence(board.id);
 
-  // Sync back to storage on changes
+  // Board-level data created by the studios (kept with the board)
+  const [slideDeck, setSlideDeck] = useState<SavedSlide[] | undefined>(
+    () => board.slideDeck as SavedSlide[] | undefined
+  );
+  const [meetLink, setMeetLink] = useState<string | undefined>(board.meetLink);
+
+  // Sync back to storage on changes (App debounces the actual save)
   useEffect(() => {
     onUpdateBoard({
       ...board,
@@ -230,8 +234,10 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
       frames,
       comments,
       viewState: { panX: pan.x, panY: pan.y, zoom },
+      slideDeck: slideDeck as Record<string, unknown>[] | undefined,
+      meetLink,
     });
-  }, [elements, frames, comments, pan, zoom]);
+  }, [elements, frames, comments, pan, zoom, slideDeck, meetLink]);
 
   // Push history on major state change
   const pushHistory = (newElements: CanvasElement[], newFrames: CanvasFrame[]) => {
@@ -325,20 +331,6 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
     pushHistory(updated, frames);
   };
 
-  // Live cursor animation loop
-  useEffect(() => {
-    if (!showCollabCursors) return;
-    const interval = setInterval(() => {
-      setCollabCursors((prev) =>
-        prev.map((c) => ({
-          ...c,
-          x: c.x + (Math.random() - 0.5) * 40,
-          y: c.y + (Math.random() - 0.5) * 30,
-        }))
-      );
-    }, 2500);
-    return () => clearInterval(interval);
-  }, [showCollabCursors]);
 
   // Screen to World Coordinates conversion
   const screenToWorld = (screenX: number, screenY: number): Point => {
@@ -348,6 +340,17 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
     const y = (screenY - rect.top - pan.y) / zoom;
     return { x, y };
   };
+
+  // Share this device's cursor with the other open sessions of the board
+  useEffect(() => {
+    if (presenceOthers.length === 0) return;
+    const onMove = (e: PointerEvent) => {
+      const world = screenToWorld(e.clientX, e.clientY);
+      sendCursor(world.x, world.y);
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => window.removeEventListener('pointermove', onMove);
+  }, [pan, zoom, presenceOthers.length, sendCursor]);
 
   // Zoom helpers
   const handleZoomChange = (delta: number) => {
@@ -2603,7 +2606,9 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
         onToggleVoting={() => setIsVotingOpen(!isVotingOpen)}
         isVotingActive={isVotingActive}
         onStartPresentation={() => setIsSlideMotionOpen(true)}
-        collaboratorCount={collabCursors.length + 1}
+        collaboratorCount={presenceOthers.length + 1}
+        presenceSelf={presenceSelf}
+        presenceOthers={presenceOthers}
         onToggleCollabCursors={() => setShowCollabCursors(!showCollabCursors)}
         showCollabCursors={showCollabCursors}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
@@ -2921,7 +2926,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
 
           {/* Layer 4: Simulated Collaborator Cursors */}
           {showCollabCursors &&
-            collabCursors.map((cursor) => (
+            Object.entries(presenceCursors).map(([id, cursor]) => ({ id, ...cursor })).map((cursor) => (
               <div
                 key={cursor.id}
                 className="absolute pointer-events-none transition-all duration-700 ease-out z-50 flex items-start gap-1"
@@ -3410,6 +3415,8 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
         onClose={() => setIsSlideMotionOpen(false)}
         frames={frames}
         elements={elements}
+        savedSlides={slideDeck}
+        onSaveSlides={setSlideDeck}
         onExportSlidesToBoard={(newFrames, newElements) => {
           playSound.success();
           const updatedFrames = [...frames, ...newFrames];
@@ -3476,6 +3483,8 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
         isOpen={isVideoCallOpen}
         onClose={() => setIsVideoCallOpen(false)}
         boardTitle={board.title}
+        meetLink={meetLink}
+        onMeetLinkChange={setMeetLink}
         onInsertNotesToCanvas={(notes: { text: string; color: string }[]) => {
           playSound.pop();
           const startX = -pan.x / zoom + window.innerWidth / (2 * zoom) - 200;

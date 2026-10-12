@@ -78,12 +78,55 @@ export interface SlideDeckItem {
   boardFrame?: CanvasFrame;
 }
 
+// Slides as stored on the board: board elements are kept as ids (no duplicated
+// content/images) and re-linked to the live board when the studio opens.
+export type SavedSlide = Omit<SlideDeckItem, 'boardElements' | 'boardFrame'> & {
+  boardElementIds?: string[];
+};
+
+export function slidesToSaved(slides: SlideDeckItem[]): SavedSlide[] {
+  return slides.map(({ boardElements, boardFrame, ...rest }) => ({
+    ...rest,
+    boardElementIds: boardElements?.map((el) => el.id),
+  }));
+}
+
+function elementsInFrame(frame: CanvasFrame, elements: CanvasElement[]): CanvasElement[] {
+  return elements.filter(
+    (el) =>
+      el.x >= frame.x - 80 &&
+      el.x <= frame.x + frame.width + 80 &&
+      el.y >= frame.y - 80 &&
+      el.y <= frame.y + frame.height + 80
+  );
+}
+
+function linkSlidesToBoard(
+  saved: SavedSlide[],
+  frames: CanvasFrame[],
+  elements: CanvasElement[]
+): SlideDeckItem[] {
+  const byId = new Map(elements.map((el) => [el.id, el]));
+  return saved.map(({ boardElementIds, ...rest }) => {
+    const frame = rest.sourceFrameId ? frames.find((f) => f.id === rest.sourceFrameId) : undefined;
+    if (frame) {
+      // Frame slides always show the frame's current content
+      return { ...rest, boardFrame: frame, boardElements: elementsInFrame(frame, elements) };
+    }
+    const linked = (boardElementIds || []).map((id) => byId.get(id)).filter(Boolean) as CanvasElement[];
+    return { ...rest, boardElements: linked.length > 0 ? linked : undefined };
+  });
+}
+
 interface SlideMotionStudioProps {
   isOpen: boolean;
   onClose: () => void;
   frames: CanvasFrame[];
   elements: CanvasElement[];
   onExportSlidesToBoard: (newFrames: CanvasFrame[], newElements: CanvasElement[]) => void;
+  /** Deck previously saved on the board (edits are kept between sessions) */
+  savedSlides?: SavedSlide[];
+  onSaveSlides?: (slides: SavedSlide[]) => void;
 }
 
 export const SlideMotionStudio: React.FC<SlideMotionStudioProps> = ({
@@ -92,6 +135,8 @@ export const SlideMotionStudio: React.FC<SlideMotionStudioProps> = ({
   frames,
   elements,
   onExportSlidesToBoard,
+  savedSlides,
+  onSaveSlides,
 }) => {
   // Generate high-fidelity slides from the actual board data
   const generateSlidesFromBoardData = (
@@ -292,7 +337,9 @@ export const SlideMotionStudio: React.FC<SlideMotionStudioProps> = ({
   };
 
   const [slides, setSlides] = useState<SlideDeckItem[]>(() =>
-    generateSlidesFromBoardData(frames, elements)
+    savedSlides && savedSlides.length > 0
+      ? linkSlidesToBoard(savedSlides, frames, elements)
+      : generateSlidesFromBoardData(frames, elements)
   );
 
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -316,15 +363,37 @@ export const SlideMotionStudio: React.FC<SlideMotionStudioProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
 
-  // Re-sync when frames or elements change from props
+  // Keep the edited deck, only refresh the board content it shows
   useEffect(() => {
     if (isOpen) {
-      setSlides(generateSlidesFromBoardData(frames, elements));
+      setSlides((prev) => linkSlidesToBoard(slidesToSaved(prev), frames, elements));
     }
   }, [isOpen, frames, elements]);
 
-  // Sync from board manually
+  // Save every edit to the board (skip the first render, nothing changed yet)
+  const lastSavedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!onSaveSlides) return;
+    const saved = slidesToSaved(slides);
+    const json = JSON.stringify(saved);
+    if (lastSavedRef.current === null) {
+      lastSavedRef.current = json;
+      return;
+    }
+    if (json === lastSavedRef.current) return;
+    lastSavedRef.current = json;
+    onSaveSlides(saved);
+  }, [slides, onSaveSlides]);
+
+  // Rebuild the deck from the board (replaces manual edits, so ask first)
   const handleSyncFromBoard = () => {
+    if (
+      savedSlides &&
+      savedSlides.length > 0 &&
+      !window.confirm('Recriar os slides a partir do quadro? As edições feitas nos slides serão substituídas.')
+    ) {
+      return;
+    }
     playSound.click();
     const newSlides = generateSlidesFromBoardData(frames, elements);
     setSlides(newSlides);

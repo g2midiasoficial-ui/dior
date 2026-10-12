@@ -172,6 +172,10 @@ export interface BoardItem {
     panY: number;
     zoom: number;
   };
+  /** Slide deck edited in the Slide Studio (see SavedSlide in SlideMotionStudio) */
+  slideDeck?: Record<string, unknown>[];
+  /** Google Meet room link saved for this board */
+  meetLink?: string;
 }
 
 export interface TemplateCategory {

@@ -6,10 +6,12 @@ import { BoardCanvas } from './components/canvas/BoardCanvas';
 import { SalesPage } from './components/sales/SalesPage';
 import { AuthPage } from './components/auth/AuthPage';
 import { UpgradeModal } from './components/dashboard/UpgradeModal';
-import { loadBoards, getBoardById, updateBoard } from './utils/storage';
+import { getBoardById } from './utils/storage';
 import { getCurrentUser, saveCurrentUser, logoutUser, updateUserPlan } from './utils/auth';
 import { 
-  saveBoardToDb, 
+  queueBoardSave,
+  flushBoardSave,
+  fetchBoardFromDb,
   saveUserProfileToDb, 
   signOutUser, 
   subscribeToAuthChanges 
@@ -36,10 +38,14 @@ export default function App() {
     return () => unsub();
   }, []);
 
-  // Sync board data when currentBoardId changes
+  // Load the board when currentBoardId changes: database first (source of truth), local copy as fallback
   useEffect(() => {
-    if (currentBoardId) {
-      const b = getBoardById(currentBoardId);
+    if (!currentBoardId) return;
+    let cancelled = false;
+    (async () => {
+      const remote = await fetchBoardFromDb(currentBoardId).catch(() => null);
+      if (cancelled) return;
+      const b = remote ?? getBoardById(currentBoardId);
       if (b) {
         setCurrentBoard(b);
         setCurrentPage('canvas');
@@ -48,8 +54,11 @@ export default function App() {
         setCurrentBoard(null);
         setCurrentPage(currentUser ? 'dashboard' : 'sales');
       }
-    }
-  }, [currentBoardId, currentUser]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentBoardId, currentUser?.id]);
 
   const handleOpenBoard = (boardId: string) => {
     if (!currentUser) {
@@ -62,6 +71,7 @@ export default function App() {
   };
 
   const handleBackToDashboard = () => {
+    flushBoardSave();
     setCurrentBoardId(null);
     setCurrentBoard(null);
     setCurrentPage(currentUser ? 'dashboard' : 'sales');
@@ -69,10 +79,8 @@ export default function App() {
 
   const handleUpdateCurrentBoard = (updatedBoard: BoardItem) => {
     setCurrentBoard(updatedBoard);
-    updateBoard(updatedBoard.id, () => updatedBoard);
-    if (currentUser) {
-      saveBoardToDb(updatedBoard, currentUser.id);
-    }
+    // Debounced: the canvas reports changes on every drag/pan/zoom frame
+    queueBoardSave(updatedBoard);
   };
 
   const handleEnterPlatformFromSales = (user?: UserProfile) => {
@@ -99,6 +107,7 @@ export default function App() {
   };
 
   const handleLogout = async () => {
+    await flushBoardSave();
     await signOutUser();
     logoutUser();
     setCurrentUser(null);
@@ -115,6 +124,16 @@ export default function App() {
     }
   };
 
+  // 0. Board still loading from the database
+  if (currentPage === 'canvas' && !currentBoard && currentBoardId) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-slate-50 text-slate-500">
+        <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-indigo-600 animate-spin" />
+        <p className="text-sm font-medium">Abrindo quadro…</p>
+      </div>
+    );
+  }
+
   // 1. Full Canvas Page (Requires authenticated user)
   if (currentPage === 'canvas' && currentBoard) {
     if (!currentUser) {
@@ -128,6 +147,7 @@ export default function App() {
     }
     return (
       <BoardCanvas
+        key={currentBoard.id}
         board={currentBoard}
         onBackToDashboard={handleBackToDashboard}
         onUpdateBoard={handleUpdateCurrentBoard}

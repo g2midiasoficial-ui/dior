@@ -30,6 +30,9 @@ import {
   Presentation,
 } from 'lucide-react';
 import { BoardItem } from '../../types/miro';
+import { SaveStatusBadge } from './SaveStatusBadge';
+import { DiorfyMark } from '../brand/DiorfyLogo';
+import type { PresencePeer } from '../../hooks/useBoardPresence';
 import { LanguageSelector } from '../common/LanguageSelector';
 import { useTranslation } from '../../i18n/I18nContext';
 
@@ -46,6 +49,8 @@ interface CanvasTopNavProps {
   isVotingActive: boolean;
   onStartPresentation: () => void;
   collaboratorCount: number;
+  presenceSelf?: PresencePeer | null;
+  presenceOthers?: PresencePeer[];
   onToggleCollabCursors: () => void;
   showCollabCursors: boolean;
   onOpenCommandPalette?: () => void;
@@ -77,6 +82,8 @@ export const CanvasTopNav: React.FC<CanvasTopNavProps> = ({
   isVotingActive,
   onStartPresentation,
   collaboratorCount,
+  presenceSelf = null,
+  presenceOthers = [],
   onToggleCollabCursors,
   showCollabCursors,
   onOpenCommandPalette,
@@ -116,9 +123,7 @@ export const CanvasTopNav: React.FC<CanvasTopNavProps> = ({
           className="flex items-center gap-1.5 p-1 rounded-lg hover:bg-slate-100 transition-colors group cursor-pointer shrink-0"
           title="Voltar ao Painel Diorfy"
         >
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white font-extrabold flex items-center justify-center text-sm shadow-sm group-hover:scale-105 transition-transform">
-            D
-          </div>
+          <DiorfyMark className="h-7 w-auto group-hover:scale-105 transition-transform" />
         </button>
 
         {/* Board Title & Rename */}
@@ -155,6 +160,8 @@ export const CanvasTopNav: React.FC<CanvasTopNavProps> = ({
               )}
             </button>
           )}
+
+          <SaveStatusBadge />
 
           {/* Three-dot dropdown menu */}
           <div className="relative shrink-0">
@@ -438,12 +445,16 @@ export const CanvasTopNav: React.FC<CanvasTopNavProps> = ({
           title={t('canvas.topNav.cursorCollab')}
         >
           <div className="flex -space-x-1.5 overflow-hidden">
-            <span className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center">
-              MS
-            </span>
-            <span className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center">
-              CM
-            </span>
+            {[...(presenceSelf ? [presenceSelf] : []), ...presenceOthers].slice(0, 4).map((peer, idx) => (
+              <span
+                key={peer.connId}
+                className="inline-flex h-6 w-6 rounded-full ring-2 ring-white text-white text-[10px] font-bold items-center justify-center"
+                style={{ backgroundColor: peer.color }}
+                title={idx === 0 && presenceSelf ? `Você (${peer.device})` : `${peer.name} (${peer.device})`}
+              >
+                {peer.initials}
+              </span>
+            ))}
           </div>
           <span className="hidden lg:inline text-[11px] font-bold ml-1">{collaboratorCount} online</span>
         </button>

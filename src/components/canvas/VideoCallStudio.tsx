@@ -50,6 +50,38 @@ interface VideoCallStudioProps {
   onClose: () => void;
   boardTitle: string;
   onInsertNotesToCanvas?: (notes: { text: string; color: string }[]) => void;
+  /** Meet room saved on the board */
+  meetLink?: string;
+  onMeetLinkChange?: (link: string) => void;
+}
+
+function meetCodeFromLink(link?: string): string {
+  if (!link) return '';
+  const trimmed = link.trim();
+  const code = trimmed.includes('meet.google.com/')
+    ? trimmed.split('meet.google.com/')[1]
+    : trimmed;
+  return code.split(/[?#/]/)[0].toLowerCase();
+}
+
+// Google Meet refuses to load inside other sites (iframe), so it opens in a
+// popup window docked to the right side of the screen, next to the board.
+function openMeetWindow(url: string) {
+  const availW = window.screen.availWidth || window.innerWidth;
+  const availH = window.screen.availHeight || window.innerHeight;
+  const availLeft = (window.screen as Screen & { availLeft?: number }).availLeft ?? 0;
+  const availTop = (window.screen as Screen & { availTop?: number }).availTop ?? 0;
+  const width = Math.max(420, Math.min(560, Math.round(availW * 0.34)));
+  const left = availLeft + availW - width;
+  const features = `popup=yes,width=${width},height=${availH},left=${left},top=${availTop}`;
+  const win = window.open(url, 'diorfy-google-meet', features);
+  if (win) {
+    win.opener = null;
+    win.focus();
+  } else {
+    // Popup blocked: fall back to a new tab
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
 }
 
 export const VideoCallStudio: React.FC<VideoCallStudioProps> = ({
@@ -57,16 +89,17 @@ export const VideoCallStudio: React.FC<VideoCallStudioProps> = ({
   onClose,
   boardTitle,
   onInsertNotesToCanvas,
+  meetLink,
+  onMeetLinkChange,
 }) => {
   const { t } = useTranslation();
 
-  // Consistent Google Meet room code per board title
-  const [googleMeetCode, setGoogleMeetCode] = useState<string>(() => {
-    const chars = 'abcdefghijklmnopqrstuvwxyz';
-    const rand = (len: number) =>
-      Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    return `${rand(3)}-${rand(4)}-${rand(3)}`;
-  });
+  // Google Meet room saved on the board ('' = no room yet)
+  const [googleMeetCode, setGoogleMeetCodeState] = useState<string>(() => meetCodeFromLink(meetLink));
+  const setGoogleMeetCode = (code: string) => {
+    setGoogleMeetCodeState(code);
+    onMeetLinkChange?.(code ? `https://meet.google.com/${code}` : '');
+  };
 
   const [isMeetCopied, setIsMeetCopied] = useState(false);
   const [customMeetInput, setCustomMeetInput] = useState('');
@@ -124,8 +157,12 @@ export const VideoCallStudio: React.FC<VideoCallStudioProps> = ({
   const handleOpenGoogleMeet = (code?: string) => {
     playSound.pop();
     const targetCode = code || googleMeetCode;
-    const url = `https://meet.google.com/${targetCode}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    if (!targetCode) {
+      // No room yet: let Google create one, then the user pastes its link here
+      handleGenerateNewMeet();
+      return;
+    }
+    openMeetWindow(`https://meet.google.com/${targetCode}`);
   };
 
   // Lifecycle: Auto-open Google Meet immediately when call is tapped
@@ -144,7 +181,8 @@ export const VideoCallStudio: React.FC<VideoCallStudioProps> = ({
     // Auto open Meet on first trigger if not already opened
     if (!hasAutoOpenedRef.current) {
       hasAutoOpenedRef.current = true;
-      handleOpenGoogleMeet();
+      if (googleMeetCode) handleOpenGoogleMeet();
+      else setShowCustomInput(true);
     }
 
     // Set up real BroadcastChannel for cross-tab multi-user call sync
@@ -161,7 +199,7 @@ export const VideoCallStudio: React.FC<VideoCallStudioProps> = ({
       const { type, meetCode, reaction, note } = event.data;
 
       if (type === 'sync_meet_code' && meetCode) {
-        setGoogleMeetCode(meetCode);
+        setGoogleMeetCodeState(meetCode);
       }
 
       if (type === 'reaction' && reaction) {
@@ -304,6 +342,7 @@ export const VideoCallStudio: React.FC<VideoCallStudioProps> = ({
 
   // Copy Meet Link
   const handleCopyMeetLink = () => {
+    if (!googleMeetCode) return;
     playSound.pop();
     const url = `https://meet.google.com/${googleMeetCode}`;
     navigator.clipboard.writeText(url);
@@ -312,22 +351,13 @@ export const VideoCallStudio: React.FC<VideoCallStudioProps> = ({
   };
 
   // Generate new Google Meet room
-  const handleGenerateNewMeet = () => {
+  // Google creates the room at meet.google.com/new; the user pastes the link back to save it
+  function handleGenerateNewMeet() {
     playSound.pop();
-    const chars = 'abcdefghijklmnopqrstuvwxyz';
-    const rand = (len: number) =>
-      Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    const newCode = `${rand(3)}-${rand(4)}-${rand(3)}`;
-    setGoogleMeetCode(newCode);
-
-    if (broadcastChannelRef.current) {
-      broadcastChannelRef.current.postMessage({
-        type: 'sync_meet_code',
-        meetCode: newCode,
-      });
-    }
-    handleOpenGoogleMeet(newCode);
-  };
+    openMeetWindow('https://meet.google.com/new');
+    setShowCustomInput(true);
+    setLayoutMode('floating'); // the paste-link field lives in the full panel
+  }
 
   // Custom Meet submit
   const handleCustomMeetSubmit = (e: React.FormEvent) => {
@@ -335,10 +365,8 @@ export const VideoCallStudio: React.FC<VideoCallStudioProps> = ({
     if (!customMeetInput.trim()) return;
     playSound.click();
 
-    let code = customMeetInput.trim();
-    if (code.includes('meet.google.com/')) {
-      code = code.split('meet.google.com/')[1].split('?')[0];
-    }
+    const code = meetCodeFromLink(customMeetInput);
+    if (!code) return;
     setGoogleMeetCode(code);
     setShowCustomInput(false);
     setCustomMeetInput('');
@@ -371,7 +399,7 @@ export const VideoCallStudio: React.FC<VideoCallStudioProps> = ({
               </span>
             </div>
             <p className="text-[11px] text-emerald-400 font-mono mt-0.5 truncate max-w-[130px]">
-              meet.google.com/{googleMeetCode}
+              {googleMeetCode ? `meet.google.com/${googleMeetCode}` : 'Nenhuma sala salva ainda'}
             </p>
           </div>
 
@@ -441,7 +469,7 @@ export const VideoCallStudio: React.FC<VideoCallStudioProps> = ({
               <span className="font-extrabold text-xs text-white">Sala Oficial Google Meet</span>
             </div>
             <div className="p-2 rounded-xl bg-slate-900 border border-emerald-500/20 font-mono text-xs text-emerald-400 font-bold flex items-center justify-between">
-              <span className="truncate">meet.google.com/{googleMeetCode}</span>
+              <span className="truncate">{googleMeetCode ? `meet.google.com/${googleMeetCode}` : 'Nenhuma sala salva ainda'}</span>
               <button
                 onClick={handleCopyMeetLink}
                 className="p-1 hover:text-white rounded transition-colors cursor-pointer"
@@ -666,7 +694,7 @@ export const VideoCallStudio: React.FC<VideoCallStudioProps> = ({
           {/* Room Link Display & Actions */}
           <div className="p-2 rounded-xl bg-slate-900/90 border border-white/10 flex items-center justify-between gap-2">
             <div className="min-w-0 font-mono text-xs text-emerald-400 font-bold truncate">
-              meet.google.com/{googleMeetCode}
+              {googleMeetCode ? `meet.google.com/${googleMeetCode}` : 'Nenhuma sala salva ainda'}
             </div>
             <div className="flex items-center gap-1 shrink-0">
               <button
@@ -693,7 +721,7 @@ export const VideoCallStudio: React.FC<VideoCallStudioProps> = ({
             className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 hover:shadow-emerald-950/60 transition-all cursor-pointer"
           >
             <GoogleMeetIcon className="w-4 h-4" />
-            <span>Abrir / Voltar ao Google Meet</span>
+            <span>{googleMeetCode ? 'Abrir Google Meet ao lado do quadro' : 'Criar sala no Google Meet'}</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </button>
 
@@ -703,9 +731,15 @@ export const VideoCallStudio: React.FC<VideoCallStudioProps> = ({
               onClick={() => setShowCustomInput(!showCustomInput)}
               className="text-[10px] text-slate-400 hover:text-emerald-400 transition-colors"
             >
-              {showCustomInput ? '▲ Ocultar entrada de código' : '▼ Entrar com outro código ou link do Meet'}
+              {showCustomInput ? '▲ Ocultar' : googleMeetCode ? '▼ Trocar a sala deste quadro' : '▼ Já tenho um link do Meet'}
             </button>
           </div>
+
+          {showCustomInput && (
+            <p className="text-[10px] text-slate-400 leading-relaxed">
+              Crie a sala no Google Meet, copie o link da janela que abriu e cole aqui. Ele fica salvo neste quadro para as próximas reuniões.
+            </p>
+          )}
 
           {showCustomInput && (
             <form onSubmit={handleCustomMeetSubmit} className="flex items-center gap-1.5 pt-1 animate-in fade-in">
@@ -713,14 +747,14 @@ export const VideoCallStudio: React.FC<VideoCallStudioProps> = ({
                 type="text"
                 value={customMeetInput}
                 onChange={(e) => setCustomMeetInput(e.target.value)}
-                placeholder="Ex: abc-defg-hij ou meet.google.com/..."
+                placeholder="Cole o link: meet.google.com/abc-defg-hij"
                 className="flex-1 bg-slate-900/90 text-white placeholder-slate-500 text-xs px-2.5 py-1.5 rounded-xl border border-white/10 outline-none focus:ring-1 focus:ring-emerald-400"
               />
               <button
                 type="submit"
                 className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
               >
-                Entrar
+                Salvar sala
               </button>
             </form>
           )}

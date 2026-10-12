@@ -246,8 +246,27 @@ export function subscribeToUserBoards(
   };
 }
 
+// --- Save status (shown in the canvas top bar) ---
+
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'local' | 'error';
+let saveStatus: SaveStatus = 'idle';
+let saveError: string | null = null;
+const saveListeners = new Set<(status: SaveStatus, error: string | null) => void>();
+
+function setSaveStatus(status: SaveStatus, error: string | null = null) {
+  saveStatus = status;
+  saveError = error;
+  saveListeners.forEach((fn) => fn(status, error));
+}
+
+export function subscribeToSaveStatus(fn: (status: SaveStatus, error: string | null) => void): () => void {
+  saveListeners.add(fn);
+  fn(saveStatus, saveError);
+  return () => saveListeners.delete(fn);
+}
+
 export async function saveBoardToDb(board: BoardItem, userId?: string): Promise<void> {
-  // 1. Update local storage instantly for zero-latency UX
+  // 1. Update local storage instantly for zero-latency UX (may fail when the browser quota is full)
   const localBoards = loadBoards();
   const existingIdx = localBoards.findIndex((b) => b.id === board.id);
   if (existingIdx !== -1) {
@@ -258,15 +277,77 @@ export async function saveBoardToDb(board: BoardItem, userId?: string): Promise<
   saveBoards(localBoards);
 
   // 2. Persist to Supabase (owner always comes from the real session, RLS enforces it)
-  if (!supabase) return;
+  if (!supabase) {
+    setSaveStatus('local');
+    return;
+  }
   const uid = await currentUserId();
-  if (!uid) return;
+  if (!uid) {
+    setSaveStatus('local');
+    return;
+  }
   if (userId && userId !== uid) {
     console.warn('saveBoardToDb: userId diferente da sessão ativa, usando a sessão.');
   }
 
+  setSaveStatus('saving');
   const { error } = await supabase.from(BOARDS_TABLE).upsert(boardToRow(board, uid));
-  if (error) console.warn('Supabase saveBoardToDb note:', error.message);
+  if (error) {
+    console.warn('Supabase saveBoardToDb note:', error.message);
+    // Keep it so the "Erro ao salvar" badge can retry
+    pendingBoard = pendingBoard ?? board;
+    setSaveStatus('error', error.message);
+  } else {
+    setSaveStatus('saved');
+  }
+}
+
+// Debounced save for the canvas, which changes many times per second (drag, pan, zoom)
+const SAVE_DEBOUNCE_MS = 800;
+let pendingBoard: BoardItem | null = null;
+let pendingTimer: ReturnType<typeof setTimeout> | null = null;
+
+export function queueBoardSave(board: BoardItem): void {
+  pendingBoard = board;
+  if (saveStatus !== 'saving') setSaveStatus('saving');
+  if (pendingTimer) clearTimeout(pendingTimer);
+  pendingTimer = setTimeout(() => {
+    flushBoardSave();
+  }, SAVE_DEBOUNCE_MS);
+}
+
+export function flushBoardSave(): Promise<void> {
+  if (pendingTimer) clearTimeout(pendingTimer);
+  pendingTimer = null;
+  const board = pendingBoard;
+  pendingBoard = null;
+  return board ? saveBoardToDb(board) : Promise.resolve();
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', (e) => {
+    if (pendingBoard) {
+      flushBoardSave();
+      e.preventDefault();
+    }
+  });
+}
+
+export async function fetchBoardFromDb(boardId: string): Promise<BoardItem | null> {
+  if (!supabase) return null;
+  const uid = await currentUserId();
+  if (!uid) return null;
+  const { data, error } = await supabase
+    .from(BOARDS_TABLE)
+    .select('data')
+    .eq('owner_id', uid)
+    .eq('id', boardId)
+    .maybeSingle();
+  if (error) {
+    console.warn('Supabase fetchBoardFromDb note:', error.message);
+    return null;
+  }
+  return (data?.data as BoardItem) ?? null;
 }
 
 export async function deleteBoardFromDb(boardId: string): Promise<void> {
