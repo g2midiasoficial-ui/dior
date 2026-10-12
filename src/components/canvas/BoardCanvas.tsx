@@ -14,7 +14,7 @@ import { TransformBoundingBox, ResizeHandleType } from './TransformBoundingBox';
 import { ZoomControlsMenu } from './ZoomControlsMenu';
 import { NanoBananaStudio } from './NanoBananaStudio';
 import { AiAgentPanel } from './AiAgentPanel';
-import { SlideMotionStudio, SavedSlide } from './SlideMotionStudio';
+import { SlideEditor } from '../slides/SlideEditor';
 import { useBoardPresence } from '../../hooks/useBoardPresence';
 import { MindmapStudio } from './MindmapStudio';
 import { CommandPalette } from './CommandPalette';
@@ -221,9 +221,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
   const { others: presenceOthers, cursors: presenceCursors, sendCursor, self: presenceSelf } = useBoardPresence(board.id);
 
   // Board-level data created by the studios (kept with the board)
-  const [slideDeck, setSlideDeck] = useState<SavedSlide[] | undefined>(
-    () => board.slideDeck as SavedSlide[] | undefined
-  );
+  const [slideDeck, setSlideDeck] = useState<unknown>(() => board.slideDeck);
   const [meetLink, setMeetLink] = useState<string | undefined>(board.meetLink);
 
   // Sync back to storage on changes (App debounces the actual save)
@@ -234,7 +232,7 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
       frames,
       comments,
       viewState: { panX: pan.x, panY: pan.y, zoom },
-      slideDeck: slideDeck as Record<string, unknown>[] | undefined,
+      slideDeck,
       meetLink,
     });
   }, [elements, frames, comments, pan, zoom, slideDeck, meetLink]);
@@ -3410,22 +3408,26 @@ export const BoardCanvas: React.FC<BoardCanvasProps> = ({
       />
 
       {/* 🎬 Slide Motion Design Studio */}
-      <SlideMotionStudio
-        isOpen={isSlideMotionOpen}
-        onClose={() => setIsSlideMotionOpen(false)}
-        frames={frames}
-        elements={elements}
-        savedSlides={slideDeck}
-        onSaveSlides={setSlideDeck}
-        onExportSlidesToBoard={(newFrames, newElements) => {
-          playSound.success();
-          const updatedFrames = [...frames, ...newFrames];
-          const updatedElements = [...elements, ...newElements];
-          setFrames(updatedFrames);
-          setElements(updatedElements);
-          pushHistory(updatedElements, updatedFrames);
-        }}
-      />
+      {/* PowerPoint-style slide editor (mounted only while open, deck saved on the board) */}
+      {isSlideMotionOpen && (
+        <SlideEditor
+          isOpen
+          onClose={() => setIsSlideMotionOpen(false)}
+          boardTitle={board.title}
+          frames={frames}
+          elements={elements}
+          savedDeck={slideDeck}
+          onSaveDeck={setSlideDeck}
+          onExportSlidesToBoard={(newFrames, newElements) => {
+            playSound.success();
+            const updatedFrames = [...frames, ...newFrames];
+            const updatedElements = [...elements, ...newElements];
+            setFrames(updatedFrames);
+            setElements(updatedElements);
+            pushHistory(updatedElements, updatedFrames);
+          }}
+        />
+      )}
 
       {/* AI Assistant Modal */}
       <AIModal
